@@ -3,8 +3,8 @@ title: "MarkIt - Next-Generation Extensible Markup Parser"
 description: "Revolutionary markup parsing with configurable tag bracket protocols. Parse XML, HTML, and any custom markup format with a single, extensible parser."
 url: "https://khicago.github.io"
 baseurl: "/markit"
-author: "MarkIt Team"
-email: "contact@markit.dev"
+author: "Khicago Team"
+email: "kinghand@foxmail.com"
 
 # GitHub repository
 github_username: khicago
@@ -37,14 +37,45 @@ navigation:
     url: "/"
   - title: "Getting Started"
     url: "/getting-started"
-  - title: "Features"
-    url: "/features"
+  - title: "Configuration"
+    url: "/configuration"
   - title: "API Reference"
     url: "/api-reference"
   - title: "Examples"
     url: "/examples"
   - title: "Contributing"
     url: "/contributing"
+  - title: "FAQ"
+    url: "/faq"
+
+# Sidebar navigation for better organization
+sidebar_nav:
+  - title: "Quick Start"
+    items:
+      - title: "Installation"
+        url: "/getting-started#installation"
+      - title: "Basic Usage"
+        url: "/getting-started#basic-usage"
+      - title: "Your First Parse"
+        url: "/getting-started#your-first-parse"
+  
+  - title: "Core Concepts"
+    items:
+      - title: "Parser Configuration"
+        url: "/configuration"
+      - title: "AST Structure"
+        url: "/api-reference#ast-structure"
+      - title: "Void Elements"
+        url: "/void-elements"
+  
+  - title: "Advanced Usage"
+    items:
+      - title: "Custom Protocols"
+        url: "/examples#custom-protocols"
+      - title: "Attribute Processing"
+        url: "/examples#attribute-processing"
+      - title: "Performance Tips"
+        url: "/examples#performance"
 
 # Google Analytics (replace with your tracking ID)
 # google_analytics: UA-XXXXXXXX-X
@@ -70,7 +101,7 @@ defaults:
       type: "pages"
     values:
       layout: "default"
-      author: "MarkIt Team"
+      author: "Khicago Team"
 
 # Kramdown settings
 kramdown:

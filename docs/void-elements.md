@@ -2,8 +2,8 @@
 layout: default
 title: "Void Elements - HTML5 Self-Closing Tags"
 description: "Complete guide to MarkIt's void elements support - HTML5 standard void elements, custom configurations, and XML compatibility."
-keywords: "void elements, html5, self-closing tags, xml, go parser, markit"
-author: "MarkIt Team"
+keywords: "void elements, html5, self-closing tags, xml, go parser, markit, llm, ai"
+author: "Khicago Team"
 ---
 
 # Void Elements Support

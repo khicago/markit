@@ -2,8 +2,8 @@
 layout: default
 title: "Getting Started - MarkIt Parser"
 description: "Quick start guide for MarkIt - installation, basic usage, configuration, and your first parsing examples."
-keywords: "markit getting started, go xml parser, html parser, installation guide"
-author: "MarkIt Team"
+keywords: "markit getting started, go xml parser, html parser, installation guide, llm, ai"
+author: "Khicago Team"
 ---
 
 # Getting Started

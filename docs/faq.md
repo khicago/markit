@@ -2,8 +2,8 @@
 layout: default
 title: "FAQ - Frequently Asked Questions"
 description: "Find answers to common questions about MarkIt parser - usage, configuration, performance, and troubleshooting."
-keywords: "markit faq, parser questions, troubleshooting, go xml html parser"
-author: "MarkIt Team"
+keywords: "markit faq, parser questions, troubleshooting, go xml html parser, LLM, AI"
+author: "Khicago Team"
 ---
 
 # Frequently Asked Questions

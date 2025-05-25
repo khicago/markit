@@ -2,8 +2,8 @@
 layout: default
 title: "API Reference - Complete Documentation"
 description: "Complete API reference for MarkIt parser - all types, methods, and interfaces with examples."
-keywords: "markit api reference, go xml parser api, html parser documentation"
-author: "MarkIt Team"
+keywords: "markit api reference, go xml parser api, html parser documentation, llm, ai"
+author: "Khicago Team"
 ---
 
 # API Reference

@@ -2,8 +2,8 @@
 layout: default
 title: "Contributing - Join the MarkIt Community"
 description: "Learn how to contribute to MarkIt parser - from setting up development environment to submitting pull requests."
-keywords: "markit contributing, go open source, parser development, contribution guide"
-author: "MarkIt Team"
+keywords: "markit contributing, go open source, parser development, contribution guide, llm, ai"
+author: "Khicago Team"
 ---
 
 # Contributing to MarkIt

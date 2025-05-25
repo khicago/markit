@@ -8,31 +8,56 @@
     <!-- SEO Meta Tags -->
     <title>{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
     <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
-    <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}{{ site.keywords }}{% endif %}">
+    <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}markup parser, XML, HTML, Go, extensible{% endif %}">
     <meta name="author" content="{% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+    <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
     <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
     <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
-    <meta property="og:image" content="{{ site.url }}/assets/images/og-image.png">
+    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/assets/images/og-image.png">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ site.url }}{{ page.url }}">
+    <meta property="twitter:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
     <meta property="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
     <meta property="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
-    <meta property="twitter:image" content="{{ site.url }}/assets/images/og-image.png">
+    <meta property="twitter:image" content="{{ site.url }}{{ site.baseurl }}/assets/images/og-image.png">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="{{ site.baseurl }}/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ site.baseurl }}/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ site.baseurl }}/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ site.baseurl }}/favicon-16x16.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <!-- Styles -->
     <style>
+        /* CSS Variables for theming */
+        :root {
+            --primary-color: #0ea5e9;
+            --primary-hover: #0284c7;
+            --secondary-color: #64748b;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --code-bg: #f1f5f9;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+
         /* Reset and Base Styles */
         * {
             margin: 0;
@@ -41,409 +66,619 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background-color: var(--background);
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
-        /* Header and Navigation */
+
+        /* Layout Container */
+        .layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            background-color: rgba(248, 250, 252, 0.8);
         }
-        
-        .nav-container {
-            max-width: 1200px;
+
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            height: 4rem;
         }
-        
+
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
             text-decoration: none;
-            color: white;
+            transition: opacity 0.2s;
         }
-        
+
+        .logo:hover {
+            opacity: 0.8;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
         .nav-menu {
             display: flex;
             list-style: none;
-            gap: 2rem;
+            gap: 0.5rem;
+            align-items: center;
         }
-        
+
         .nav-menu a {
-            color: white;
+            color: var(--text-secondary);
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
-        
+
         .nav-menu a:hover,
         .nav-menu a.active {
-            background-color: rgba(255,255,255,0.2);
+            color: var(--primary-color);
+            background-color: var(--surface);
         }
-        
+
         .mobile-menu-toggle {
             display: none;
             background: none;
             border: none;
-            color: white;
-            font-size: 1.5rem;
+            color: var(--text);
+            font-size: 1.25rem;
             cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: background-color 0.2s;
         }
-        
-        /* Main Content */
-        .container {
-            max-width: 1200px;
+
+        .mobile-menu-toggle:hover {
+            background-color: var(--surface);
+        }
+
+        /* Main Content Layout */
+        .main-layout {
+            flex: 1;
+            max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
             padding: 2rem;
-            min-height: calc(100vh - 200px);
         }
-        
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 {
-            margin-bottom: 1rem;
-            line-height: 1.2;
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 6rem;
+            border: 1px solid var(--border);
         }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: #2c3e50;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 0.5rem;
+
+        .sidebar-section {
             margin-bottom: 2rem;
         }
-        
-        h2 {
-            font-size: 2rem;
-            color: #34495e;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+
+        .sidebar-section:last-child {
+            margin-bottom: 0;
         }
-        
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: var(--primary-color);
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+
+        /* Content */
+        .content {
+            background: var(--background);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+            scroll-margin-top: 6rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            color: var(--text);
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            left: -1rem;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
         h3 {
             font-size: 1.5rem;
-            color: #34495e;
+            color: var(--text);
+            margin-top: 2rem;
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            color: var(--text);
             margin-top: 1.5rem;
         }
-        
+
         p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            color: var(--text);
         }
-        
+
+        .lead {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
         /* Links */
         a {
-            color: #667eea;
+            color: var(--primary-color);
             text-decoration: none;
+            transition: color 0.2s;
         }
-        
+
         a:hover {
+            color: var(--primary-hover);
             text-decoration: underline;
         }
-        
-        /* Code Blocks */
+
+        /* Code */
         code {
-            background-color: #f8f9fa;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9em;
+            font-family: 'JetBrains Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875em;
+            background-color: var(--code-bg);
+            color: var(--text);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border);
         }
-        
+
         pre {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            padding: 1rem;
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
             overflow-x: auto;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+            line-height: 1.7;
         }
-        
+
         pre code {
             background: none;
+            border: none;
             padding: 0;
+            font-size: inherit;
         }
-        
+
         /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
         }
-        
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 0.75rem;
+            padding: 0.75rem 1rem;
             text-align: left;
+            border-bottom: 1px solid var(--border);
         }
-        
+
         th {
-            background-color: #f8f9fa;
-            font-weight: bold;
+            background-color: var(--surface);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.875rem;
         }
-        
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
+
+        tr:last-child td {
+            border-bottom: none;
         }
-        
+
+        tr:hover {
+            background-color: var(--surface-hover);
+        }
+
         /* Blockquotes */
         blockquote {
-            border-left: 4px solid #667eea;
-            padding-left: 1rem;
-            margin: 1rem 0;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background-color: var(--surface);
+            border-radius: 0 var(--radius) var(--radius) 0;
             font-style: italic;
-            color: #666;
         }
-        
+
+        blockquote > p:last-child {
+            margin-bottom: 0;
+        }
+
         /* Lists */
         ul, ol {
-            margin-bottom: 1rem;
-            padding-left: 2rem;
+            margin-bottom: 1.25rem;
+            padding-left: 1.5rem;
         }
-        
+
         li {
             margin-bottom: 0.5rem;
         }
-        
+
         /* Badges */
         .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
             font-size: 0.75rem;
-            font-weight: bold;
-            border-radius: 3px;
+            font-weight: 500;
+            border-radius: 9999px;
             margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
         }
-        
+
+        .badge-primary {
+            background-color: rgba(14, 165, 233, 0.1);
+            color: var(--primary-color);
+        }
+
         .badge-success {
-            background-color: #28a745;
-            color: white;
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #059669;
         }
-        
-        .badge-info {
-            background-color: #17a2b8;
-            color: white;
-        }
-        
+
         .badge-warning {
-            background-color: #ffc107;
-            color: #212529;
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #d97706;
         }
-        
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background-color: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background-color 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        
-        .btn:hover {
-            background-color: #5a6fd8;
-            text-decoration: none;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 2px solid #667eea;
-            color: #667eea;
-        }
-        
-        .btn-outline:hover {
-            background-color: #667eea;
-            color: white;
-        }
-        
+
         /* Footer */
         .footer {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
             margin-top: 4rem;
         }
-        
+
         .footer-content {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1rem;
             margin-bottom: 1rem;
+            color: var(--text);
         }
-        
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
         .footer-links a {
-            color: #bdc3c7;
-            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: color 0.2s;
         }
-        
+
         .footer-links a:hover {
-            color: white;
+            color: var(--primary-color);
         }
-        
+
+        .footer-bottom {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
         /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .sidebar {
+                order: 2;
+                position: static;
+            }
+
+            .content {
+                order: 1;
+                padding: 2rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                flex-direction: column;
-                padding: 1rem;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             }
-            
-            .nav-menu.active {
-                display: flex;
-            }
-            
+
             .mobile-menu-toggle {
                 display: block;
             }
-            
-            .nav-container {
-                position: relative;
+
+            .header-content {
+                padding: 0 1rem;
             }
-            
-            .container {
+
+            .main-layout {
                 padding: 1rem;
             }
-            
+
+            .content {
+                padding: 1.5rem;
+            }
+
             h1 {
                 font-size: 2rem;
             }
-            
+
             h2 {
                 font-size: 1.5rem;
             }
-            
-            .footer-links {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            table {
-                font-size: 0.9rem;
-            }
-            
-            pre {
-                font-size: 0.8rem;
-            }
         }
-        
-        /* Syntax Highlighting */
-        .highlight {
-            background-color: #f8f9fa;
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-        
-        .highlight .c { color: #999988; font-style: italic; } /* Comment */
-        .highlight .k { color: #000000; font-weight: bold; } /* Keyword */
-        .highlight .s { color: #d14; } /* String */
-        .highlight .n { color: #333333; } /* Name */
-        .highlight .o { color: #000000; font-weight: bold; } /* Operator */
-        .highlight .p { color: #333333; } /* Punctuation */
-        
+
         /* Table of Contents */
         .toc {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
             margin: 2rem 0;
         }
-        
-        .toc h2 {
-            margin-top: 0;
+
+        .toc h4 {
             margin-bottom: 1rem;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            color: var(--text);
         }
-        
+
         .toc ul {
-            margin-bottom: 0;
+            list-style: none;
+            padding-left: 0;
         }
-        
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
         .toc a {
-            color: #495057;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
-        
-        /* Utility Classes */
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .mt-2 { margin-top: 2rem; }
-        .mb-2 { margin-bottom: 2rem; }
-        .p-2 { padding: 2rem; }
+
+        /* Syntax highlighting for code blocks */
+        .highlight {
+            background: var(--code-bg) !important;
+        }
+
+        .highlight .c { color: #6a737d; } /* Comment */
+        .highlight .k { color: #d73a49; } /* Keyword */
+        .highlight .s { color: #032f62; } /* String */
+        .highlight .n { color: #24292e; } /* Name */
+        .highlight .o { color: #d73a49; } /* Operator */
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="nav-container">
-            <a href="/" class="logo">{{ site.title }}</a>
-            
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="/" {% if page.url == "/" %}class="active"{% endif %}>Home</a></li>
-                <li><a href="/getting-started" {% if page.url contains "getting-started" %}class="active"{% endif %}>Getting Started</a></li>
-                <li><a href="/configuration" {% if page.url contains "configuration" %}class="active"{% endif %}>Configuration</a></li>
-                <li><a href="/api-reference" {% if page.url contains "api-reference" %}class="active"{% endif %}>API Reference</a></li>
-                <li><a href="/examples" {% if page.url contains "examples" %}class="active"{% endif %}>Examples</a></li>
-                <li><a href="/contributing" {% if page.url contains "contributing" %}class="active"{% endif %}>Contributing</a></li>
-                <li><a href="/faq" {% if page.url contains "faq" %}class="active"{% endif %}>FAQ</a></li>
-            </ul>
-            
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container">
-        {{ content }}
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-links">
-                <a href="{{ site.github.repository_url }}">GitHub</a>
-                <a href="{{ site.github.repository_url }}/issues">Issues</a>
-                <a href="{{ site.github.repository_url }}/discussions">Discussions</a>
-                <a href="/contributing">Contributing</a>
-                <a href="/faq">FAQ</a>
+    <div class="layout">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <a href="{{ site.baseurl }}/" class="logo">
+                    <div class="logo-icon">M</div>
+                    MarkIt
+                </a>
+                
+                <nav class="nav-menu">
+                    {% for item in site.navigation %}
+                    <a href="{{ site.baseurl }}{{ item.url }}" {% if page.url == item.url %}class="active"{% endif %}>
+                        {{ item.title }}
+                    </a>
+                    {% endfor %}
+                </nav>
+                
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    ☰
+                </button>
             </div>
-            <p>&copy; {{ 'now' | date: "%Y" }} {{ site.author }}. Licensed under {{ site.license }}.</p>
-            <p>Built with ❤️ for the Go community</p>
-        </div>
-    </footer>
+        </header>
 
-    <!-- JavaScript -->
+        <!-- Main Content -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                {% if site.sidebar_nav %}
+                {% for section in site.sidebar_nav %}
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">{{ section.title }}</h3>
+                    <ul class="sidebar-nav">
+                        {% for item in section.items %}
+                        <li>
+                            <a href="{{ site.baseurl }}{{ item.url }}">{{ item.title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <!-- Quick Links -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Quick Links</h3>
+                    <ul class="sidebar-nav">
+                        <li><a href="https://github.com/khicago/markit" target="_blank">GitHub Repository</a></li>
+                        <li><a href="https://github.com/khicago/markit/issues" target="_blank">Report Issues</a></li>
+                        <li><a href="https://github.com/khicago/markit/discussions" target="_blank">Discussions</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <main class="content">
+                {{ content }}
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>MarkIt Parser</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                        Next-generation extensible markup parser for Go. Fast, flexible, and production-ready.
+                    </p>
+                    <div>
+                        <span class="badge badge-primary">Go 1.18+</span>
+                        <span class="badge badge-success">Zero Dependencies</span>
+                        <span class="badge badge-warning">High Performance</span>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ site.baseurl }}/getting-started">Getting Started</a></li>
+                        <li><a href="{{ site.baseurl }}/api-reference">API Reference</a></li>
+                        <li><a href="{{ site.baseurl }}/examples">Examples</a></li>
+                        <li><a href="{{ site.baseurl }}/faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/khicago/markit" target="_blank">GitHub</a></li>
+                        <li><a href="https://github.com/khicago/markit/issues" target="_blank">Issues</a></li>
+                        <li><a href="https://github.com/khicago/markit/discussions" target="_blank">Discussions</a></li>
+                        <li><a href="{{ site.baseurl }}/contributing">Contributing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ site.baseurl }}/configuration">Configuration</a></li>
+                        <li><a href="{{ site.baseurl }}/void-elements">Void Elements</a></li>
+                        <li><a href="https://pkg.go.dev/github.com/khicago/markit" target="_blank">Go Docs</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Khicago Team. Licensed under <a href="https://github.com/khicago/markit/blob/main/LICENSE" target="_blank">MIT License</a>.</p>
+                <p>Built with ❤️ for the Go community</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript for mobile menu and scroll behavior -->
     <script>
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-toggle').addEventListener('click', function() {
-            const navMenu = document.getElementById('nav-menu');
-            navMenu.classList.toggle('active');
-        });
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
 
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -467,15 +702,15 @@
                 position: absolute;
                 top: 0.5rem;
                 right: 0.5rem;
-                background: #667eea;
+                background: var(--primary-color);
                 color: white;
                 border: none;
                 padding: 0.25rem 0.5rem;
-                border-radius: 3px;
-                font-size: 0.8rem;
+                border-radius: 0.25rem;
+                font-size: 0.75rem;
                 cursor: pointer;
                 opacity: 0;
-                transition: opacity 0.3s ease;
+                transition: opacity 0.2s;
             `;
             
             pre.style.position = 'relative';
@@ -491,14 +726,11 @@
             
             button.addEventListener('click', () => {
                 const code = pre.querySelector('code');
-                if (code) {
-                    navigator.clipboard.writeText(code.textContent).then(() => {
-                        button.textContent = 'Copied!';
-                        setTimeout(() => {
-                            button.textContent = 'Copy';
-                        }, 2000);
-                    });
-                }
+                navigator.clipboard.writeText(code.textContent);
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 1000);
             });
         });
 
@@ -509,11 +741,11 @@
                 anchor.href = '#' + heading.id;
                 anchor.textContent = '#';
                 anchor.style.cssText = `
-                    margin-left: 0.5rem;
-                    color: #ccc;
+                    color: var(--text-muted);
                     text-decoration: none;
+                    margin-left: 0.5rem;
                     opacity: 0;
-                    transition: opacity 0.3s ease;
+                    transition: opacity 0.2s;
                 `;
                 
                 heading.appendChild(anchor);
@@ -529,8 +761,8 @@
         });
     </script>
 
-    <!-- Analytics (if configured) -->
     {% if site.google_analytics %}
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];

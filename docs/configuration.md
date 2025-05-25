@@ -3,7 +3,7 @@ layout: default
 title: "Configuration - Parser Settings"
 description: "Complete guide to MarkIt parser configuration options - case sensitivity, void elements, comments, and custom settings."
 keywords: "markit configuration, parser settings, go xml parser, html parser configuration"
-author: "MarkIt Team"
+author: "Khicago Team"
 ---
 
 # Configuration Guide

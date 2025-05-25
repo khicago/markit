@@ -2,8 +2,8 @@
 layout: default
 title: "MarkIt - Fast XML/HTML Parser for Go"
 description: "A high-performance, memory-efficient XML and HTML parser for Go with a simple API and extensive configuration options."
-keywords: "Go, XML, HTML, parser, AST, performance, memory-efficient"
-author: "MarkIt Team"
+keywords: "Go, XML, HTML, parser, AST, performance, memory-efficient, llm, ai"
+author: "Khicago Team"
 ---
 
 # MarkIt Parser

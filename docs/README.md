@@ -66,7 +66,7 @@ layout: default
 title: "Page Title"
 description: "Page description for SEO"
 keywords: "relevant, keywords, for, seo"
-author: "MarkIt Team"
+author: "Khicago Team"
 ---
 ```
 

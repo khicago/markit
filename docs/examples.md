@@ -2,8 +2,8 @@
 layout: default
 title: "Examples - Real-World Usage"
 description: "Practical examples of using MarkIt parser for web scraping, template processing, API parsing, and more."
-keywords: "markit examples, go xml parser examples, html parser usage, web scraping"
-author: "MarkIt Team"
+keywords: "markit examples, go xml parser examples, html parser usage, web scraping, llm, ai"
+author: "Khicago Team"
 ---
 
 # Examples
