@@ -1,0 +1,1273 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>markit: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/khicago/markit/ast.go (100.0%)</option>
+				
+				<option value="file1">github.com/khicago/markit/core_protocol.go (100.0%)</option>
+				
+				<option value="file2">github.com/khicago/markit/lexer.go (100.0%)</option>
+				
+				<option value="file3">github.com/khicago/markit/parser.go (96.1%)</option>
+				
+				<option value="file4">github.com/khicago/markit/protocol.go (100.0%)</option>
+				
+				<option value="file5">github.com/khicago/markit/token.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Package markit provides an extensible markup language parser with pluggable
+// tag bracket protocols for parsing various markup languages and custom formats.
+//
+// MarkIt is designed around the concept of configurable tag bracket protocols,
+// allowing users to define custom markup syntaxes through plugins. Instead of
+// being tied to specific markup languages like XML or HTML, MarkIt provides
+// a flexible foundation where any tag-based syntax can be supported through
+// protocol extensions.
+//
+// Core Design Philosophy:
+//   - Tag Bracket Protocols: Define custom syntax like &lt;a...b&gt; where 'a' and 'b'
+//     are configurable opening and closing bracket sequences
+//   - Plugin Architecture: Load syntax plugins at parser initialization
+//   - Language Agnostic: Support XML, HTML, and any custom markup through plugins
+//   - Compile-time Configuration: Case sensitivity and other options configurable
+//
+// Key Features:
+// - 🔧 Pluggable tag bracket protocols (&lt;...&gt;, &lt;?...?&gt;, &lt;!...&gt;, etc.)
+// - 🎯 Universal syntax support (XML, HTML, custom formats)
+// - ⚡ High-performance parsing with minimal overhead
+// - 📍 Precise error reporting with position tracking
+// - 🔀 Visitor pattern for flexible AST traversal
+// - 🧩 Plugin system for extending syntax support
+package markit
+
+// Node 表示 AST 中的一个节点
+type Node interface {
+        // Type 返回节点类型
+        Type() NodeType
+        // Position 返回节点在源码中的位置
+        Position() Position
+        // String 返回节点的字符串表示
+        String() string
+}
+
+// NodeType 表示节点类型
+type NodeType int
+
+const (
+        NodeTypeDocument NodeType = iota
+        NodeTypeElement
+        NodeTypeText
+        NodeTypeProcessingInstruction
+        NodeTypeDoctype
+        NodeTypeCDATA
+        NodeTypeComment
+)
+
+// Document 表示文档根节点
+type Document struct {
+        Children []Node
+        Pos      Position
+}
+
+func (d *Document) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeDocument }</span>
+func (d *Document) Position() Position <span class="cov8" title="1">{ return d.Pos }</span>
+func (d *Document) String() string     <span class="cov8" title="1">{ return "Document" }</span>
+
+// Element 表示元素节点
+type Element struct {
+        TagName    string
+        Attributes map[string]string
+        Children   []Node
+        SelfClose  bool
+        Pos        Position
+}
+
+func (e *Element) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeElement }</span>
+func (e *Element) Position() Position <span class="cov8" title="1">{ return e.Pos }</span>
+func (e *Element) String() string     <span class="cov8" title="1">{ return e.TagName }</span>
+
+// Text 表示文本节点
+type Text struct {
+        Content string
+        Pos     Position
+}
+
+func (t *Text) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeText }</span>
+func (t *Text) Position() Position <span class="cov8" title="1">{ return t.Pos }</span>
+func (t *Text) String() string     <span class="cov8" title="1">{ return t.Content }</span>
+
+// ProcessingInstruction 表示处理指令节点
+type ProcessingInstruction struct {
+        Target  string
+        Content string
+        Pos     Position
+}
+
+func (pi *ProcessingInstruction) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeProcessingInstruction }</span>
+func (pi *ProcessingInstruction) Position() Position <span class="cov8" title="1">{ return pi.Pos }</span>
+func (pi *ProcessingInstruction) String() string     <span class="cov8" title="1">{ return pi.Target }</span>
+
+// Doctype 表示DOCTYPE声明节点
+type Doctype struct {
+        Content string
+        Pos     Position
+}
+
+func (dt *Doctype) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeDoctype }</span>
+func (dt *Doctype) Position() Position <span class="cov8" title="1">{ return dt.Pos }</span>
+func (dt *Doctype) String() string     <span class="cov8" title="1">{ return dt.Content }</span>
+
+// CDATA 表示CDATA节点
+type CDATA struct {
+        Content string
+        Pos     Position
+}
+
+func (cd *CDATA) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeCDATA }</span>
+func (cd *CDATA) Position() Position <span class="cov8" title="1">{ return cd.Pos }</span>
+func (cd *CDATA) String() string     <span class="cov8" title="1">{ return cd.Content }</span>
+
+// Comment 表示注释节点
+type Comment struct {
+        Content string
+        Pos     Position
+}
+
+func (c *Comment) Type() NodeType     <span class="cov8" title="1">{ return NodeTypeComment }</span>
+func (c *Comment) Position() Position <span class="cov8" title="1">{ return c.Pos }</span>
+func (c *Comment) String() string     <span class="cov8" title="1">{ return c.Content }</span>
+
+// AttributeProcessor 属性处理器接口
+type AttributeProcessor interface {
+        // ProcessAttribute 处理属性，返回处理后的键值对
+        ProcessAttribute(key, value string) (string, interface{}, error)
+        // IsBooleanAttribute 检查是否是布尔属性
+        IsBooleanAttribute(key string) bool
+}
+
+// DefaultAttributeProcessor 默认属性处理器
+type DefaultAttributeProcessor struct{}
+
+func (p *DefaultAttributeProcessor) ProcessAttribute(key, value string) (string, interface{}, error) <span class="cov8" title="1">{
+        // 如果值为空，认为是布尔属性
+        if value == "" </span><span class="cov8" title="1">{
+                return key, true, nil
+        }</span>
+        <span class="cov8" title="1">return key, value, nil</span>
+}
+
+func (p *DefaultAttributeProcessor) IsBooleanAttribute(key string) bool <span class="cov8" title="1">{
+        // HTML5 标准布尔属性列表
+        booleanAttrs := map[string]bool{
+                "checked":   true,
+                "disabled":  true,
+                "selected":  true,
+                "readonly":  true,
+                "required":  true,
+                "autofocus": true,
+                "autoplay":  true,
+                "controls":  true,
+                "defer":     true,
+                "hidden":    true,
+                "loop":      true,
+                "multiple":  true,
+                "muted":     true,
+                "open":      true,
+                "reversed":  true,
+                "scoped":    true,
+        }
+        return booleanAttrs[key]
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package markit
+
+// CoreProtocol MarkIt 核心协议定义
+// 这些是 MarkIt 的内置协议，不能被覆盖或移除
+type CoreProtocol struct {
+        Name        string
+        OpenSeq     string
+        CloseSeq    string
+        SelfClose   string
+        TokenType   TokenType
+        Description string
+}
+
+// GetCoreProtocols 返回 MarkIt 的核心协议
+// 这些协议是内置的，不需要注册，也不能被覆盖
+func GetCoreProtocols() []CoreProtocol <span class="cov8" title="1">{
+        return []CoreProtocol{
+                {
+                        Name:        "markit-standard-tag",
+                        OpenSeq:     "&lt;",
+                        CloseSeq:    "&gt;",
+                        SelfClose:   "/",
+                        TokenType:   TokenOpenTag,
+                        Description: "MarkIt standard tags &lt;tag&gt;",
+                },
+                {
+                        Name:        "markit-comment",
+                        OpenSeq:     "&lt;!--",
+                        CloseSeq:    "--&gt;",
+                        SelfClose:   "",
+                        TokenType:   TokenComment,
+                        Description: "MarkIt comments &lt;!-- --&gt;",
+                },
+        }
+}</span>
+
+// CoreProtocolMatcher MarkIt 核心协议匹配器
+type CoreProtocolMatcher struct {
+        protocols []CoreProtocol
+        maxLen    int
+}
+
+// NewCoreProtocolMatcher 创建核心协议匹配器
+func NewCoreProtocolMatcher() *CoreProtocolMatcher <span class="cov8" title="1">{
+        protocols := GetCoreProtocols()
+        matcher := &amp;CoreProtocolMatcher{
+                protocols: protocols,
+                maxLen:    0,
+        }
+
+        // 计算最大长度
+        for _, protocol := range protocols </span><span class="cov8" title="1">{
+                if len(protocol.OpenSeq) &gt; matcher.maxLen </span><span class="cov8" title="1">{
+                        matcher.maxLen = len(protocol.OpenSeq)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return matcher</span>
+}
+
+// MatchProtocol 匹配核心协议
+func (cpm *CoreProtocolMatcher) MatchProtocol(input string, pos int) *CoreProtocol <span class="cov8" title="1">{
+        // 按开始序列长度从长到短匹配，确保最长匹配优先
+        for length := cpm.maxLen; length &gt;= 1; length-- </span><span class="cov8" title="1">{
+                if pos+length &gt; len(input) </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">candidate := input[pos : pos+length]
+                for i := range cpm.protocols </span><span class="cov8" title="1">{
+                        if cpm.protocols[i].OpenSeq == candidate </span><span class="cov8" title="1">{
+                                return &amp;cpm.protocols[i]
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package markit
+
+import (
+        "fmt"
+        "strings"
+        "unicode"
+        "unicode/utf8"
+)
+
+// Lexer 词法分析器
+type Lexer struct {
+        input    string
+        position int
+        line     int
+        column   int
+        current  rune
+        config   *ParserConfig
+}
+
+// NewLexer 创建新的词法分析器（使用默认配置）
+func NewLexer(input string) *Lexer <span class="cov8" title="1">{
+        return NewLexerWithConfig(input, DefaultConfig())
+}</span>
+
+// NewLexerWithConfig 创建带配置的词法分析器
+func NewLexerWithConfig(input string, config *ParserConfig) *Lexer <span class="cov8" title="1">{
+        l := &amp;Lexer{
+                input:  input,
+                line:   1,
+                column: 0,
+                config: config,
+        }
+        l.readChar()
+        return l
+}</span>
+
+// SetConfig 设置词法分析器配置
+func (l *Lexer) SetConfig(config *ParserConfig) <span class="cov8" title="1">{
+        l.config = config
+}</span>
+
+// GetConfig 获取词法分析器配置
+func (l *Lexer) GetConfig() *ParserConfig <span class="cov8" title="1">{
+        return l.config
+}</span>
+
+// NextToken 获取下一个 token
+func (l *Lexer) NextToken() Token <span class="cov8" title="1">{
+        l.skipWhitespace()
+
+        pos := Position{
+                Line:   l.line,
+                Column: l.column,
+                Offset: l.position,
+        }
+
+        if l.position &gt;= len(l.input) </span><span class="cov8" title="1">{
+                return Token{Type: TokenEOF, Value: "", Position: pos}
+        }</span>
+
+        // 计算当前字符的位置（因为 readChar 已经移动了位置）
+        <span class="cov8" title="1">currentPos := l.position
+        if l.current != 0 </span><span class="cov8" title="1">{
+                // 回退到当前字符的位置
+                _, size := utf8.DecodeRuneInString(l.input[l.position-1:])
+                currentPos = l.position - size
+        }</span>
+
+        // 使用核心协议匹配器检查是否是标签开始
+        <span class="cov8" title="1">if protocol := l.config.CoreMatcher.MatchProtocol(l.input, currentPos); protocol != nil </span><span class="cov8" title="1">{
+                return l.readProtocolToken(protocol)
+        }</span>
+
+        // 读取文本内容
+        <span class="cov8" title="1">token := l.readText(pos)
+        return token</span>
+}
+
+// readChar 读取下一个字符
+func (l *Lexer) readChar() <span class="cov8" title="1">{
+        if l.position &gt;= len(l.input) </span><span class="cov8" title="1">{
+                l.current = 0 // EOF
+        }</span> else<span class="cov8" title="1"> {
+                if l.current == '\n' </span><span class="cov8" title="1">{
+                        l.line++
+                        l.column = 0
+                }</span>
+                // 正确解码UTF-8字符
+                <span class="cov8" title="1">r, size := utf8.DecodeRuneInString(l.input[l.position:])
+                l.current = r
+                l.position += size
+                l.column++</span>
+        }
+}
+
+// peekChar 查看下一个字符但不移动位置
+func (l *Lexer) peekChar() rune <span class="cov8" title="1">{
+        if l.position &gt;= len(l.input) </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        // 正确解码UTF-8字符
+        <span class="cov8" title="1">r, _ := utf8.DecodeRuneInString(l.input[l.position:])
+        return r</span>
+}
+
+// skipWhitespace 跳过空白字符
+func (l *Lexer) skipWhitespace() <span class="cov8" title="1">{
+        for unicode.IsSpace(l.current) </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+}
+
+// readText 读取文本内容
+func (l *Lexer) readText(pos Position) Token <span class="cov8" title="1">{
+        var text strings.Builder
+
+        for l.current != '&lt;' &amp;&amp; l.current != 0 </span><span class="cov8" title="1">{
+                text.WriteRune(l.current)
+                l.readChar()
+        }</span>
+
+        <span class="cov8" title="1">content := strings.TrimSpace(text.String())
+
+        return Token{
+                Type:     TokenText,
+                Value:    content,
+                Position: pos,
+        }</span>
+}
+
+// readIdentifier 读取标识符（标签名或属性名）
+func (l *Lexer) readIdentifier() string <span class="cov8" title="1">{
+        var identifier strings.Builder
+
+        // 第一个字符必须是字母、下划线或连字符
+        if !isIdentifierStart(l.current) </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">for isIdentifierChar(l.current) </span><span class="cov8" title="1">{
+                identifier.WriteRune(l.current)
+                l.readChar()
+        }</span>
+
+        <span class="cov8" title="1">return identifier.String()</span>
+}
+
+// readAttribute 读取属性
+func (l *Lexer) readAttribute() (string, string, error) <span class="cov8" title="1">{
+        // 读取属性名
+        name := l.readIdentifier()
+        if name == "" </span><span class="cov8" title="1">{
+                return "", "", fmt.Errorf("invalid attribute name")
+        }</span>
+
+        <span class="cov8" title="1">l.skipWhitespace()
+
+        // 检查是否有等号
+        if l.current != '=' </span><span class="cov8" title="1">{
+                // 布尔属性，没有值
+                return name, "", nil
+        }</span>
+
+        <span class="cov8" title="1">l.readChar() // 跳过 '='
+        l.skipWhitespace()
+
+        // 读取属性值
+        value, err := l.readAttributeValue()
+        if err != nil </span><span class="cov8" title="1">{
+                return "", "", err
+        }</span>
+
+        <span class="cov8" title="1">return name, value, nil</span>
+}
+
+// readAttributeValue 读取属性值
+func (l *Lexer) readAttributeValue() (string, error) <span class="cov8" title="1">{
+        if l.current == '"' || l.current == '\'' </span><span class="cov8" title="1">{
+                // 带引号的值
+                quote := l.current
+                l.readChar() // 跳过开始引号
+
+                var value strings.Builder
+                for l.current != quote &amp;&amp; l.current != 0 </span><span class="cov8" title="1">{
+                        if l.current == '\\' </span><span class="cov8" title="1">{
+                                l.readChar()
+                                if l.current != 0 </span><span class="cov8" title="1">{
+                                        value.WriteRune(l.current)
+                                        l.readChar()
+                                }</span>
+                        } else<span class="cov8" title="1"> {
+                                value.WriteRune(l.current)
+                                l.readChar()
+                        }</span>
+                }
+
+                <span class="cov8" title="1">if l.current != quote </span><span class="cov8" title="1">{
+                        return "", fmt.Errorf("unterminated quoted string")
+                }</span>
+                <span class="cov8" title="1">l.readChar() // 跳过结束引号
+
+                return value.String(), nil</span>
+        } else<span class="cov8" title="1"> {
+                // 不带引号的值
+                var value strings.Builder
+                for !unicode.IsSpace(l.current) &amp;&amp; l.current != '&gt;' &amp;&amp; l.current != '/' &amp;&amp; l.current != 0 </span><span class="cov8" title="1">{
+                        value.WriteRune(l.current)
+                        l.readChar()
+                }</span>
+                <span class="cov8" title="1">return value.String(), nil</span>
+        }
+}
+
+// isIdentifierStart 检查字符是否可以作为标识符的开始
+func isIdentifierStart(r rune) bool <span class="cov8" title="1">{
+        return unicode.IsLetter(r) || r == '_' || r == '-' || r == ':'
+}</span>
+
+// isIdentifierChar 检查字符是否可以作为标识符的一部分
+func isIdentifierChar(r rune) bool <span class="cov8" title="1">{
+        return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' || r == ':'
+}</span>
+
+// readComment 读取 XML 注释 &lt;!-- ... --&gt;
+func (l *Lexer) readComment(pos Position) Token <span class="cov8" title="1">{
+        // 跳过 "&lt;!--" 序列（已经被协议匹配器识别）
+        for i := 0; i &lt; 4; i++ </span><span class="cov8" title="1">{ // "&lt;!--" 长度为4
+                l.readChar()
+        }</span>
+
+        <span class="cov8" title="1">var comment strings.Builder
+
+        // 读取注释内容直到找到 --&gt;
+        for l.current != 0 </span><span class="cov8" title="1">{
+                if l.current == '-' &amp;&amp; l.peekChar() == '-' </span><span class="cov8" title="1">{
+                        // 检查是否是注释结束
+                        l.readChar() // 跳过第一个 '-'
+                        if l.current == '-' &amp;&amp; l.peekChar() == '&gt;' </span><span class="cov8" title="1">{
+                                l.readChar() // 跳过第二个 '-'
+                                l.readChar() // 跳过 '&gt;'
+                                break</span>
+                        } else<span class="cov8" title="1"> {
+                                // 不是注释结束，将 '-' 添加到内容中
+                                comment.WriteRune('-')
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        comment.WriteRune(l.current)
+                        l.readChar()
+                }</span>
+        }
+
+        <span class="cov8" title="1">return Token{
+                Type:     TokenComment,
+                Value:    strings.TrimSpace(comment.String()), // 去除前后空格
+                Position: pos,
+        }</span>
+}
+
+// readProtocolToken 读取协议token
+func (l *Lexer) readProtocolToken(protocol *CoreProtocol) Token <span class="cov8" title="1">{
+        pos := Position{
+                Line:   l.line,
+                Column: l.column,
+                Offset: l.position,
+        }
+
+        if protocol.Name == "markit-standard-tag" </span><span class="cov8" title="1">{
+                return l.readTag(pos)
+        }</span> else<span class="cov8" title="1"> if protocol.Name == "markit-comment" </span><span class="cov8" title="1">{
+                return l.readComment(pos)
+        }</span>
+
+        // 对于其他协议，使用原来的逻辑
+        <span class="cov8" title="1">start := l.position
+        if l.current != 0 </span><span class="cov8" title="1">{
+                _, size := utf8.DecodeRuneInString(l.input[l.position-1:])
+                start = l.position - size
+        }</span>
+
+        // 跳过开始序列
+        <span class="cov8" title="1">for i := 0; i &lt; len(protocol.OpenSeq); i++ </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+
+        // 查找结束序列
+        <span class="cov8" title="1">closeSeq := protocol.CloseSeq
+        for l.position &lt; len(l.input) </span><span class="cov8" title="1">{
+                if strings.HasPrefix(l.input[l.position:], closeSeq) </span><span class="cov8" title="1">{
+                        content := l.input[start : l.position+len(closeSeq)]
+                        // 跳过结束序列
+                        for i := 0; i &lt; len(closeSeq); i++ </span><span class="cov8" title="1">{
+                                l.readChar()
+                        }</span>
+                        <span class="cov8" title="1">return Token{Type: protocol.TokenType, Value: content, Position: pos}</span>
+                }
+                <span class="cov8" title="1">l.readChar()</span>
+        }
+
+        // 如果没有找到结束序列，返回到文件末尾
+        <span class="cov8" title="1">content := l.input[start:]
+        return Token{Type: protocol.TokenType, Value: content, Position: pos}</span>
+}
+
+// readTag 读取标签
+func (l *Lexer) readTag(pos Position) Token <span class="cov8" title="1">{
+        l.readChar() // 跳过 '&lt;'
+
+        // 检查是否是结束标签
+        isCloseTag := false
+        if l.current == '/' </span><span class="cov8" title="1">{
+                isCloseTag = true
+                l.readChar() // 跳过 '/'
+        }</span>
+
+        // 读取标签名
+        <span class="cov8" title="1">tagName := l.readIdentifier()
+        if tagName == "" </span><span class="cov8" title="1">{
+                return Token{Type: TokenError, Value: "invalid tag name", Position: pos}
+        }</span>
+
+        // 跳过空白
+        <span class="cov8" title="1">l.skipWhitespace()
+
+        // 读取属性
+        attributes := make(map[string]string)
+        if !isCloseTag </span><span class="cov8" title="1">{
+                for l.current != '&gt;' &amp;&amp; l.current != '/' &amp;&amp; l.current != 0 </span><span class="cov8" title="1">{
+                        name, value, err := l.readAttribute()
+                        if err != nil </span><span class="cov8" title="1">{
+                                return Token{Type: TokenError, Value: err.Error(), Position: pos}
+                        }</span>
+                        <span class="cov8" title="1">attributes[name] = value
+                        l.skipWhitespace()</span>
+                }
+        }
+
+        // 检查自封闭标签
+        <span class="cov8" title="1">isSelfClose := false
+        if l.current == '/' </span><span class="cov8" title="1">{
+                // 检查配置是否允许自封闭标签
+                if l.config != nil &amp;&amp; l.config.AllowSelfCloseTags </span><span class="cov8" title="1">{
+                        isSelfClose = true
+                        l.readChar() // 跳过 '/'
+                }</span> else<span class="cov8" title="1"> {
+                        // 如果不允许自封闭标签，将 '/' 视为普通字符
+                        // 这里可以选择报错或者继续处理
+                        return Token{Type: TokenError, Value: "self-closing tags not allowed", Position: pos}
+                }</span>
+        }
+
+        // 跳过 '&gt;'
+        <span class="cov8" title="1">if l.current != '&gt;' </span><span class="cov8" title="1">{
+                return Token{Type: TokenError, Value: "expected '&gt;'", Position: pos}
+        }</span>
+        <span class="cov8" title="1">l.readChar()
+
+        // 确定token类型
+        var tokenType TokenType
+        if isCloseTag </span><span class="cov8" title="1">{
+                tokenType = TokenCloseTag
+        }</span> else<span class="cov8" title="1"> if isSelfClose </span><span class="cov8" title="1">{
+                tokenType = TokenSelfCloseTag
+        }</span> else<span class="cov8" title="1"> {
+                tokenType = TokenOpenTag
+        }</span>
+
+        <span class="cov8" title="1">return Token{
+                Type:       tokenType,
+                Value:      tagName,
+                Attributes: attributes,
+                Position:   pos,
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package markit
+
+import (
+        "fmt"
+        "strings"
+)
+
+// Parser 语法分析器
+type Parser struct {
+        lexer     *Lexer
+        current   Token
+        peek      Token
+        processor AttributeProcessor
+        config    *ParserConfig
+}
+
+// NewParser 创建新的语法分析器（使用默认配置）
+func NewParser(input string) *Parser <span class="cov8" title="1">{
+        return NewParserWithConfig(input, DefaultConfig())
+}</span>
+
+// NewParserWithConfig 创建带配置的语法分析器
+func NewParserWithConfig(input string, config *ParserConfig) *Parser <span class="cov8" title="1">{
+        lexer := NewLexerWithConfig(input, config)
+        p := &amp;Parser{
+                lexer:     lexer,
+                processor: config.AttributeProcessor,
+                config:    config,
+        }
+
+        // 读取前两个 token，跳过注释
+        p.nextToken()
+        p.nextToken()
+
+        // 如果配置要求跳过注释，则跳过它们
+        if p.config.SkipComments </span><span class="cov8" title="1">{
+                for p.current.Type == TokenComment </span><span class="cov8" title="1">{
+                        p.nextToken()
+                }</span>
+        }
+
+        <span class="cov8" title="1">return p</span>
+}
+
+// SetAttributeProcessor 设置属性处理器
+func (p *Parser) SetAttributeProcessor(processor AttributeProcessor) <span class="cov8" title="1">{
+        p.processor = processor
+        p.config.AttributeProcessor = processor
+}</span>
+
+// GetConfig 获取解析器配置
+func (p *Parser) GetConfig() *ParserConfig <span class="cov8" title="1">{
+        return p.config
+}</span>
+
+// SetConfig 设置解析器配置
+func (p *Parser) SetConfig(config *ParserConfig) <span class="cov8" title="1">{
+        p.config = config
+        p.processor = config.AttributeProcessor
+        // 更新lexer配置
+        p.lexer.SetConfig(config)
+}</span>
+
+// Parse 解析输入并返回 AST
+func (p *Parser) Parse() (*Document, error) <span class="cov8" title="1">{
+        doc := &amp;Document{
+                Children: []Node{},
+                Pos:      p.current.Position,
+        }
+
+        for p.current.Type != TokenEOF </span><span class="cov8" title="1">{
+                node, err := p.parseNode()
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if node != nil </span><span class="cov8" title="1">{
+                        doc.Children = append(doc.Children, node)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return doc, nil</span>
+}
+
+// parseNode 解析一个节点
+func (p *Parser) parseNode() (Node, error) <span class="cov8" title="1">{
+        // 如果配置要求跳过注释，则跳过注释token
+        if p.config.SkipComments &amp;&amp; p.current.Type == TokenComment </span><span class="cov8" title="1">{
+                p.nextToken()
+                return p.parseNode() // 递归解析下一个节点
+        }</span>
+
+        <span class="cov8" title="1">switch p.current.Type </span>{
+        case TokenText:<span class="cov8" title="1">
+                return p.parseText()</span>
+        case TokenOpenTag:<span class="cov8" title="1">
+                return p.parseElement()</span>
+        case TokenSelfCloseTag:<span class="cov8" title="1">
+                return p.parseSelfCloseElement()</span>
+        case TokenProcessingInstruction:<span class="cov0" title="0">
+                return p.parseProcessingInstruction()</span>
+        case TokenDoctype:<span class="cov0" title="0">
+                return p.parseDoctype()</span>
+        case TokenCDATA:<span class="cov0" title="0">
+                return p.parseCDATA()</span>
+        case TokenComment:<span class="cov8" title="1">
+                return p.parseComment()</span>
+        case TokenError:<span class="cov8" title="1">
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  p.current.Value,
+                }</span>
+        case TokenEOF:<span class="cov8" title="1">
+                return nil, nil</span>
+        default:<span class="cov8" title="1">
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("unexpected token %s", p.current.Type),
+                }</span>
+        }
+}
+
+// parseText 解析文本节点
+func (p *Parser) parseText() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenText </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected text token, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">text := &amp;Text{
+                Content: p.current.Value,
+                Pos:     p.current.Position,
+        }
+
+        p.nextToken()
+        return text, nil</span>
+}
+
+// parseElement 解析元素节点
+func (p *Parser) parseElement() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenOpenTag </span><span class="cov0" title="0">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected open tag, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">element := &amp;Element{
+                TagName:    p.current.Value,
+                Attributes: p.current.Attributes,
+                Children:   []Node{},
+                SelfClose:  false,
+                Pos:        p.current.Position,
+        }
+
+        tagName := p.current.Value
+        p.nextToken()
+
+        // 解析子节点
+        for p.current.Type != TokenCloseTag &amp;&amp; p.current.Type != TokenEOF </span><span class="cov8" title="1">{
+                child, err := p.parseNode()
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if child != nil </span><span class="cov8" title="1">{
+                        element.Children = append(element.Children, child)
+                }</span>
+        }
+
+        // 检查结束标签
+        <span class="cov8" title="1">if p.current.Type != TokenCloseTag </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected close tag for &lt;%s&gt;, got %s", tagName, p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">if p.current.Value != tagName </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("mismatched tags: expected &lt;/%s&gt;, got &lt;/%s&gt;", tagName, p.current.Value),
+                }
+        }</span>
+
+        <span class="cov8" title="1">p.nextToken()
+        return element, nil</span>
+}
+
+// parseSelfCloseElement 解析自闭合元素
+func (p *Parser) parseSelfCloseElement() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenSelfCloseTag </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected self-close tag, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">element := &amp;Element{
+                TagName:    p.current.Value,
+                Attributes: p.current.Attributes,
+                Children:   []Node{},
+                SelfClose:  true,
+                Pos:        p.current.Position,
+        }
+
+        p.nextToken()
+        return element, nil</span>
+}
+
+// parseProcessingInstruction 解析处理指令
+func (p *Parser) parseProcessingInstruction() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenProcessingInstruction </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected processing instruction token, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">pi := &amp;ProcessingInstruction{
+                Target:  p.current.Value,
+                Content: p.current.Value,
+                Pos:     p.current.Position,
+        }
+
+        p.nextToken()
+        return pi, nil</span>
+}
+
+// parseDoctype 解析DOCTYPE声明
+func (p *Parser) parseDoctype() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenDoctype </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected doctype token, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">doctype := &amp;Doctype{
+                Content: p.current.Value,
+                Pos:     p.current.Position,
+        }
+
+        p.nextToken()
+        return doctype, nil</span>
+}
+
+// parseCDATA 解析CDATA节点
+func (p *Parser) parseCDATA() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenCDATA </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected CDATA token, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">cdata := &amp;CDATA{
+                Content: p.current.Value,
+                Pos:     p.current.Position,
+        }
+
+        p.nextToken()
+        return cdata, nil</span>
+}
+
+// parseComment 解析注释节点
+func (p *Parser) parseComment() (Node, error) <span class="cov8" title="1">{
+        if p.current.Type != TokenComment </span><span class="cov8" title="1">{
+                return nil, &amp;ParseError{
+                        Position: p.current.Position,
+                        Message:  fmt.Sprintf("expected comment token, got %s", p.current.Type),
+                }
+        }</span>
+
+        <span class="cov8" title="1">comment := &amp;Comment{
+                Content: p.current.Value,
+                Pos:     p.current.Position,
+        }
+
+        p.nextToken()
+        return comment, nil</span>
+}
+
+// nextToken 移动到下一个 token
+func (p *Parser) nextToken() <span class="cov8" title="1">{
+        p.current = p.peek
+        p.peek = p.lexer.NextToken()
+
+        // 不在这里跳过注释，让parseNode处理
+}</span>
+
+// ParseError 解析错误
+type ParseError struct {
+        Position Position
+        Message  string
+}
+
+func (e *ParseError) Error() string <span class="cov8" title="1">{
+        return fmt.Sprintf("parse error at %s: %s", e.Position, e.Message)
+}</span>
+
+// Visitor 访问者接口，用于遍历 AST
+type Visitor interface {
+        VisitDocument(*Document) error
+        VisitElement(*Element) error
+        VisitText(*Text) error
+        VisitProcessingInstruction(*ProcessingInstruction) error
+        VisitDoctype(*Doctype) error
+        VisitCDATA(*CDATA) error
+        VisitComment(*Comment) error
+}
+
+// Walk 遍历 AST
+func Walk(node Node, visitor Visitor) error <span class="cov8" title="1">{
+        switch n := node.(type) </span>{
+        case *Document:<span class="cov8" title="1">
+                if err := visitor.VisitDocument(n); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">for _, child := range n.Children </span><span class="cov8" title="1">{
+                        if err := Walk(child, visitor); err != nil </span><span class="cov8" title="1">{
+                                return err
+                        }</span>
+                }
+        case *Element:<span class="cov8" title="1">
+                if err := visitor.VisitElement(n); err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">for _, child := range n.Children </span><span class="cov8" title="1">{
+                        if err := Walk(child, visitor); err != nil </span><span class="cov8" title="1">{
+                                return err
+                        }</span>
+                }
+        case *Text:<span class="cov8" title="1">
+                return visitor.VisitText(n)</span>
+        case *ProcessingInstruction:<span class="cov8" title="1">
+                return visitor.VisitProcessingInstruction(n)</span>
+        case *Doctype:<span class="cov8" title="1">
+                return visitor.VisitDoctype(n)</span>
+        case *CDATA:<span class="cov8" title="1">
+                return visitor.VisitCDATA(n)</span>
+        case *Comment:<span class="cov8" title="1">
+                return visitor.VisitComment(n)</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// PrettyPrint 美化打印 AST
+func PrettyPrint(node Node) string <span class="cov8" title="1">{
+        var sb strings.Builder
+        prettyPrintNode(node, &amp;sb, 0)
+        return sb.String()
+}</span>
+
+func prettyPrintNode(node Node, sb *strings.Builder, indent int) <span class="cov8" title="1">{
+        indentStr := strings.Repeat("  ", indent)
+
+        switch n := node.(type) </span>{
+        case *Document:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sDocument\n", indentStr))
+                for _, child := range n.Children </span><span class="cov8" title="1">{
+                        prettyPrintNode(child, sb, indent+1)
+                }</span>
+        case *Element:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%s&lt;%s", indentStr, n.TagName))
+                for key, value := range n.Attributes </span><span class="cov8" title="1">{
+                        if value == "" </span><span class="cov8" title="1">{
+                                sb.WriteString(fmt.Sprintf(" %s", key))
+                        }</span> else<span class="cov8" title="1"> {
+                                sb.WriteString(fmt.Sprintf(" %s=%q", key, value))
+                        }</span>
+                }
+                <span class="cov8" title="1">if n.SelfClose </span><span class="cov8" title="1">{
+                        sb.WriteString(" /&gt;\n")
+                }</span> else<span class="cov8" title="1"> {
+                        sb.WriteString("&gt;\n")
+                        for _, child := range n.Children </span><span class="cov8" title="1">{
+                                prettyPrintNode(child, sb, indent+1)
+                        }</span>
+                        <span class="cov8" title="1">sb.WriteString(fmt.Sprintf("%s&lt;/%s&gt;\n", indentStr, n.TagName))</span>
+                }
+        case *Text:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sText: %q\n", indentStr, n.Content))</span>
+        case *ProcessingInstruction:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sPI: %q\n", indentStr, n.Content))</span>
+        case *Doctype:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sDoctype: %q\n", indentStr, n.Content))</span>
+        case *CDATA:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sCDATA: %q\n", indentStr, n.Content))</span>
+        case *Comment:<span class="cov8" title="1">
+                sb.WriteString(fmt.Sprintf("%sComment: %q\n", indentStr, n.Content))</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package markit
+
+import (
+        "strings"
+)
+
+// ParserConfig 解析器配置
+type ParserConfig struct {
+        // 大小写敏感性配置
+        CaseSensitive bool
+
+        // 核心协议匹配器（内置，不可修改）
+        CoreMatcher *CoreProtocolMatcher
+
+        // 属性处理器
+        AttributeProcessor AttributeProcessor
+
+        // 其他配置选项
+        TrimWhitespace     bool
+        SkipComments       bool
+        AllowEmptyElements bool
+        AllowSelfCloseTags bool // 是否允许自封闭标签
+}
+
+// DefaultConfig 创建默认配置
+func DefaultConfig() *ParserConfig <span class="cov8" title="1">{
+        config := &amp;ParserConfig{
+                CaseSensitive:      true,
+                CoreMatcher:        NewCoreProtocolMatcher(),
+                AttributeProcessor: &amp;DefaultAttributeProcessor{},
+                TrimWhitespace:     true,
+                SkipComments:       false,
+                AllowEmptyElements: true,
+                AllowSelfCloseTags: true, // 默认允许自封闭标签
+        }
+
+        return config
+}</span>
+
+// NormalizeCase 根据配置标准化大小写
+func (config *ParserConfig) NormalizeCase(s string) string <span class="cov8" title="1">{
+        if !config.CaseSensitive </span><span class="cov8" title="1">{
+                return strings.ToLower(s)
+        }</span>
+        <span class="cov8" title="1">return s</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package markit
+
+import "fmt"
+
+// TokenType 表示标记类型
+type TokenType int
+
+const (
+        TokenError TokenType = iota
+        TokenEOF
+        TokenText
+        TokenOpenTag
+        TokenCloseTag
+        TokenSelfCloseTag
+        TokenAttribute
+        TokenComment
+        // 新增的协议类型
+        TokenProcessingInstruction
+        TokenDoctype
+        TokenCDATA
+        TokenEntity
+)
+
+// String 返回 TokenType 的字符串表示
+func (t TokenType) String() string <span class="cov8" title="1">{
+        switch t </span>{
+        case TokenError:<span class="cov8" title="1">
+                return "ERROR"</span>
+        case TokenEOF:<span class="cov8" title="1">
+                return "EOF"</span>
+        case TokenText:<span class="cov8" title="1">
+                return "TEXT"</span>
+        case TokenOpenTag:<span class="cov8" title="1">
+                return "OPEN_TAG"</span>
+        case TokenCloseTag:<span class="cov8" title="1">
+                return "CLOSE_TAG"</span>
+        case TokenSelfCloseTag:<span class="cov8" title="1">
+                return "SELF_CLOSE_TAG"</span>
+        case TokenAttribute:<span class="cov8" title="1">
+                return "ATTRIBUTE"</span>
+        case TokenComment:<span class="cov8" title="1">
+                return "COMMENT"</span>
+        case TokenProcessingInstruction:<span class="cov8" title="1">
+                return "PROCESSING_INSTRUCTION"</span>
+        case TokenDoctype:<span class="cov8" title="1">
+                return "DOCTYPE"</span>
+        case TokenCDATA:<span class="cov8" title="1">
+                return "CDATA"</span>
+        case TokenEntity:<span class="cov8" title="1">
+                return "ENTITY"</span>
+        default:<span class="cov8" title="1">
+                return fmt.Sprintf("UNKNOWN(%d)", int(t))</span>
+        }
+}
+
+// Token 表示一个词法标记
+type Token struct {
+        Type       TokenType
+        Value      string
+        Attributes map[string]string
+        Position   Position
+}
+
+// Position 表示源码中的位置信息
+type Position struct {
+        Line   int
+        Column int
+        Offset int
+}
+
+// String 返回 Token 的字符串表示
+func (t Token) String() string <span class="cov8" title="1">{
+        switch t.Type </span>{
+        case TokenError:<span class="cov8" title="1">
+                return fmt.Sprintf("ERROR(%s)", t.Value)</span>
+        case TokenEOF:<span class="cov8" title="1">
+                return "EOF"</span>
+        case TokenText:<span class="cov8" title="1">
+                return fmt.Sprintf("TEXT(%q)", t.Value)</span>
+        case TokenOpenTag:<span class="cov8" title="1">
+                return fmt.Sprintf("OPEN_TAG(%s)", t.Value)</span>
+        case TokenCloseTag:<span class="cov8" title="1">
+                return fmt.Sprintf("CLOSE_TAG(%s)", t.Value)</span>
+        case TokenSelfCloseTag:<span class="cov8" title="1">
+                return fmt.Sprintf("SELF_CLOSE_TAG(%s)", t.Value)</span>
+        case TokenAttribute:<span class="cov8" title="1">
+                return fmt.Sprintf("ATTR(%s)", t.Value)</span>
+        case TokenComment:<span class="cov8" title="1">
+                return fmt.Sprintf("COMMENT(%s)", t.Value)</span>
+        default:<span class="cov8" title="1">
+                return fmt.Sprintf("UNKNOWN(%d)", int(t.Type))</span>
+        }
+}
+
+// String 返回 Position 的字符串表示
+func (p Position) String() string <span class="cov8" title="1">{
+        return fmt.Sprintf("%d:%d", p.Line, p.Column)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
