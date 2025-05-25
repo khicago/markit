@@ -41,32 +41,6 @@ func DefaultConfig() *ParserConfig {
 	return config
 }
 
-// HTMLConfig 创建适用于 HTML 的配置
-func HTMLConfig() *ParserConfig {
-	config := DefaultConfig()
-	config.CaseSensitive = false
-
-	// HTML5 标准的 void elements
-	config.VoidElements = map[string]bool{
-		"area":   true,
-		"base":   true,
-		"br":     true,
-		"col":    true,
-		"embed":  true,
-		"hr":     true,
-		"img":    true,
-		"input":  true,
-		"link":   true,
-		"meta":   true,
-		"param":  true,
-		"source": true,
-		"track":  true,
-		"wbr":    true,
-	}
-
-	return config
-}
-
 // IsVoidElement 检查指定标签是否是 void element
 func (config *ParserConfig) IsVoidElement(tagName string) bool {
 	if config.VoidElements == nil {
