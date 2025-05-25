@@ -25,6 +25,15 @@ ast, _ := parser.Parse()
 
 ## ⚡ Quick Start
 
+### 📚 Documentation
+
+For comprehensive documentation, please visit:
+
+- **[Complete Documentation](docs/)** - Full API reference and guides
+- **[Contributing Guide](docs/contributing.md)** - How to contribute to the project  
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+- **[FAQ](docs/faq.md)** - Frequently asked questions
+
 ### Installation
 
 ```bash

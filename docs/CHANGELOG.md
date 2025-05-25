@@ -1,3 +1,11 @@
+---
+layout: default
+title: "Changelog - Version History"
+description: "Complete changelog for MarkIt parser including all features, fixes, and improvements."
+keywords: "markit changelog, version history, release notes, updates, parser improvements"
+author: "Khicago Team"
+---
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

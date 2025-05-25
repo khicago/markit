@@ -45,6 +45,8 @@ navigation:
     url: "/examples"
   - title: "Contributing"
     url: "/contributing"
+  - title: "Changelog"
+    url: "/CHANGELOG"
   - title: "FAQ"
     url: "/faq"
 

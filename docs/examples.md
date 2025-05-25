@@ -2067,6 +2067,6 @@ func countElements(element *markit.Element) int {
 
 <div align="center">
 
-**[📋 Report Issues](https://github.com/khicago/markit/issues)** • **[💬 Discussions](https://github.com/khicago/markit/discussions)** • **[🤝 Contributing](https://github.com/khicago/markit/blob/main/CONTRIBUTING.md)**
+**[📋 Report Issues](https://github.com/khicago/markit/issues)** • **[💬 Discussions](https://github.com/khicago/markit/discussions)** • **[🤝 Contributing](contributing.md)**
 
 </div> 
