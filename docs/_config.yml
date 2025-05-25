@@ -1,0 +1,87 @@
+# Site settings
+title: "MarkIt - Next-Generation Extensible Markup Parser"
+description: "Revolutionary markup parsing with configurable tag bracket protocols. Parse XML, HTML, and any custom markup format with a single, extensible parser."
+url: "https://khicago.github.io"
+baseurl: "/markit"
+author: "MarkIt Team"
+email: "contact@markit.dev"
+
+# GitHub repository
+github_username: khicago
+repository: khicago/markit
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: jekyll-theme-minimal
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# SEO settings
+twitter:
+  username: markit_parser
+  card: summary_large_image
+
+social:
+  name: MarkIt Parser
+  links:
+    - https://github.com/khicago/markit
+
+# Navigation
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "Getting Started"
+    url: "/getting-started"
+  - title: "Features"
+    url: "/features"
+  - title: "API Reference"
+    url: "/api-reference"
+  - title: "Examples"
+    url: "/examples"
+  - title: "Contributing"
+    url: "/contributing"
+
+# Google Analytics (replace with your tracking ID)
+# google_analytics: UA-XXXXXXXX-X
+
+# Exclude files from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include files
+include:
+  - _pages
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+      author: "MarkIt Team"
+
+# Kramdown settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+    line_numbers: false
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:name/ 

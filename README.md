@@ -338,4 +338,94 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Made with ❤️ for the Go community
 
-</div> 
+</div>
+
+## 特性
+
+- **🔍 智能词法分析**：高效准确的 tokenization
+- **🌳 AST 构建**：完整的抽象语法树支持  
+- **⚙️ 灵活配置**：可自定义解析行为
+- **🔄 访问者模式**：便于 AST 遍历和转换
+- **📝 属性处理**：完整的属性解析和处理机制
+- **💬 注释支持**：可选的注释处理
+- **🏷️ 协议扩展**：内置协议匹配机制
+- **🧩 Void Elements 支持**：支持 HTML5 标准 void elements 和自定义配置
+- **🔧 自闭合标签**：完整的自闭合标签支持
+
+### Void Elements 支持
+
+MarkIt 提供了完整的 void elements 支持，包括 HTML5 标准 void elements 和自定义配置。
+
+#### 默认配置
+```go
+// 默认配置不包含任何 void elements
+config := markit.DefaultConfig()
+fmt.Printf("支持 <br>: %v", config.IsVoidElement("br")) // false
+```
+
+#### HTML 配置
+```go
+// HTML 配置包含所有 HTML5 标准 void elements
+config := markit.HTMLConfig()
+
+// 支持的 HTML5 void elements:
+// area, base, br, col, embed, hr, img, input, 
+// link, meta, param, source, track, wbr
+
+parser := markit.NewParserWithConfig(`<img src="test.jpg">`, config)
+doc, _ := parser.Parse()
+
+element := doc.Children[0].(*markit.Element)
+fmt.Printf("标签: %s, 自闭合: %v", element.TagName, element.SelfClose)
+// 输出: 标签: img, 自闭合: true
+```
+
+#### 自定义 Void Elements
+```go
+config := markit.DefaultConfig()
+
+// 设置自定义 void elements
+config.SetVoidElements([]string{"my-icon", "my-separator"})
+
+// 动态添加和移除
+config.AddVoidElement("custom-widget")
+config.RemoveVoidElement("my-separator")
+
+// 检查 void element
+fmt.Printf("支持 my-icon: %v", config.IsVoidElement("my-icon")) // true
+```
+
+#### 混合解析示例
+```go
+config := markit.HTMLConfig()
+input := `<article>
+    <h1>标题</h1>
+    <p>段落文本</p>
+    <br>
+    <img src="image.jpg" alt="图片">
+    <hr>
+    <input type="text" name="username">
+</article>`
+
+parser := markit.NewParserWithConfig(input, config)
+doc, _ := parser.Parse()
+
+// 所有 void elements (br, img, hr, input) 都会被正确解析为自闭合元素
+```
+
+#### XML 兼容性
+```go
+config := markit.HTMLConfig()
+
+// 同时支持 XML style 和 HTML style
+input := `<div>
+    <br />      <!-- XML style -->
+    <br>        <!-- HTML style -->
+    <img src="test.jpg" />  <!-- XML style -->
+    <img src="test2.jpg">   <!-- HTML style -->
+</div>`
+
+// 所有标签都会被正确解析
+parser := markit.NewParserWithConfig(input, config)
+doc, _ := parser.Parse()
+``` 

@@ -157,6 +157,13 @@ func (p *Parser) parseElement() (Node, error) {
 	tagName := p.current.Value
 	p.nextToken()
 
+	// 检查是否是 void element
+	if p.config != nil && p.config.IsVoidElement(tagName) {
+		// void element 不需要结束标签，直接返回自闭合元素
+		element.SelfClose = true
+		return element, nil
+	}
+
 	// 解析子节点
 	for p.current.Type != TokenCloseTag && p.current.Type != TokenEOF {
 		child, err := p.parseNode()

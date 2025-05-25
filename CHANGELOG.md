@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD pipeline with GitHub Actions
 - Code quality tools (golangci-lint, gosec)
 - Documentation and examples
+- **Void Elements 支持**: 完整的 void elements 功能实现
+  - 支持 HTML5 标准 void elements (br, hr, img, input, area, base, col, embed, link, meta, param, source, track, wbr)
+  - 可配置的自定义 void elements
+  - 动态添加和移除 void elements 的 API
+  - 大小写敏感性支持
+  - 与传统 XML 自闭合标签的完全兼容
+- HTMLConfig() 函数: 预配置 HTML5 标准解析配置
+- 新的配置方法:
+  - `IsVoidElement(tagName string) bool`: 检查是否为 void element
+  - `AddVoidElement(tagName string)`: 添加 void element
+  - `RemoveVoidElement(tagName string)`: 移除 void element  
+  - `SetVoidElements(elements []string)`: 设置完整的 void elements 列表
+  - `NormalizeCase(s string) string`: 大小写标准化
+- 完整的测试覆盖: `void_elements_test.go` 包含配置、解析、边界情况测试
+- 演示程序: `examples/void_elements_demo.go` 展示所有功能
 
 ### Features
 - **Protocol System**: Configurable open/close tag sequences
@@ -33,6 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memory-efficient lexer and parser
 - Comprehensive error handling
 - Thread-safe operations
+- 在 `ParserConfig` 中添加 `VoidElements map[string]bool` 字段
+- 修改 `parseElement` 方法支持 void element 检测
+- 保持向后兼容性，默认配置不包含任何 void elements
+- 实现大小写敏感和不敏感的 void element 匹配
+- 支持 HTML style (`<br>`) 和 XML style (`<br />`) 混合使用
 
 ## [0.1.0] - 2024-01-XX
 
