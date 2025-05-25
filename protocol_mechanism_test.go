@@ -236,62 +236,68 @@ func TestProtocolMatcherMechanism(t *testing.T) {
 // TestProtocolConfiguration 测试协议配置
 func TestProtocolConfiguration(t *testing.T) {
 	t.Run("Default protocols", func(t *testing.T) {
-		protocols := GetCoreProtocols()
-
-		if len(protocols) != 2 {
-			t.Errorf("expected 2 core protocols, got %d", len(protocols))
-		}
-
-		// 验证标准标签协议
-		found := false
-		for _, p := range protocols {
-			if p.Name == "markit-standard-tag" {
-				found = true
-				if p.OpenSeq != "<" || p.CloseSeq != ">" {
-					t.Errorf("invalid standard tag protocol sequences")
-				}
-				if p.TokenType != TokenOpenTag {
-					t.Errorf("expected TokenOpenTag, got %v", p.TokenType)
-				}
-				break
-			}
-		}
-		if !found {
-			t.Error("markit-standard-tag protocol not found")
-		}
-
-		// 验证注释协议
-		found = false
-		for _, p := range protocols {
-			if p.Name == "markit-comment" {
-				found = true
-				if p.OpenSeq != "<!--" || p.CloseSeq != "-->" {
-					t.Errorf("invalid comment protocol sequences")
-				}
-				if p.TokenType != TokenComment {
-					t.Errorf("expected TokenComment, got %v", p.TokenType)
-				}
-				break
-			}
-		}
-		if !found {
-			t.Error("markit-comment protocol not found")
-		}
+		testDefaultProtocols(t)
 	})
 
 	t.Run("Protocol matcher initialization", func(t *testing.T) {
-		matcher := NewCoreProtocolMatcher()
-
-		if len(matcher.protocols) != 2 {
-			t.Errorf("expected 2 protocols in matcher, got %d", len(matcher.protocols))
-		}
-
-		// 验证maxLen计算正确
-		expectedMaxLen := 4 // "<!--" 是最长的开始序列
-		if matcher.maxLen != expectedMaxLen {
-			t.Errorf("expected maxLen %d, got %d", expectedMaxLen, matcher.maxLen)
-		}
+		testProtocolMatcherInitialization(t)
 	})
+}
+
+// testDefaultProtocols 测试默认协议配置
+func testDefaultProtocols(t *testing.T) {
+	protocols := GetCoreProtocols()
+
+	if len(protocols) != 2 {
+		t.Errorf("expected 2 core protocols, got %d", len(protocols))
+	}
+
+	// 定义期望的协议
+	expectedProtocols := []struct {
+		name      string
+		openSeq   string
+		closeSeq  string
+		tokenType TokenType
+	}{
+		{"markit-standard-tag", "<", ">", TokenOpenTag},
+		{"markit-comment", "<!--", "-->", TokenComment},
+	}
+
+	// 验证每个协议
+	for _, expected := range expectedProtocols {
+		found := false
+		for _, p := range protocols {
+			if p.Name == expected.name {
+				found = true
+				if p.OpenSeq != expected.openSeq || p.CloseSeq != expected.closeSeq {
+					t.Errorf("invalid %s protocol sequences: got openSeq=%q, closeSeq=%q, want openSeq=%q, closeSeq=%q",
+						expected.name, p.OpenSeq, p.CloseSeq, expected.openSeq, expected.closeSeq)
+				}
+				if p.TokenType != expected.tokenType {
+					t.Errorf("expected %s protocol TokenType %v, got %v", expected.name, expected.tokenType, p.TokenType)
+				}
+				break
+			}
+		}
+		if !found {
+			t.Errorf("%s protocol not found", expected.name)
+		}
+	}
+}
+
+// testProtocolMatcherInitialization 测试协议匹配器初始化
+func testProtocolMatcherInitialization(t *testing.T) {
+	matcher := NewCoreProtocolMatcher()
+
+	if len(matcher.protocols) != 2 {
+		t.Errorf("expected 2 protocols in matcher, got %d", len(matcher.protocols))
+	}
+
+	// 验证maxLen计算正确
+	expectedMaxLen := 4 // "<!--" 是最长的开始序列
+	if matcher.maxLen != expectedMaxLen {
+		t.Errorf("expected maxLen %d, got %d", expectedMaxLen, matcher.maxLen)
+	}
 }
 
 // TestProtocolEdgeCases 测试协议机制的边界情况

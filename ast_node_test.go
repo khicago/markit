@@ -29,7 +29,25 @@ func TestASTNodeTypes(t *testing.T) {
 		},
 	}
 
-	// 测试文档节点
+	t.Run("document node", func(t *testing.T) {
+		testDocumentNode(t, doc)
+	})
+
+	t.Run("element node", func(t *testing.T) {
+		testElementNode(t, doc)
+	})
+
+	t.Run("text node", func(t *testing.T) {
+		testTextNode(t, doc)
+	})
+
+	t.Run("self-close element", func(t *testing.T) {
+		testSelfCloseElement(t, doc)
+	})
+}
+
+// testDocumentNode 测试文档节点
+func testDocumentNode(t *testing.T, doc *Document) {
 	if len(doc.Children) != 1 {
 		t.Errorf("expected 1 child in document, got %d", len(doc.Children))
 	}
@@ -41,8 +59,10 @@ func TestASTNodeTypes(t *testing.T) {
 	if doc.String() != "Document" {
 		t.Errorf("expected 'Document', got %q", doc.String())
 	}
+}
 
-	// 测试元素节点
+// testElementNode 测试元素节点
+func testElementNode(t *testing.T, doc *Document) {
 	rootElement, ok := doc.Children[0].(*Element)
 	if !ok {
 		t.Fatalf("expected Element, got %T", doc.Children[0])
@@ -67,8 +87,11 @@ func TestASTNodeTypes(t *testing.T) {
 	if len(rootElement.Children) != 2 {
 		t.Errorf("expected 2 children in root element, got %d", len(rootElement.Children))
 	}
+}
 
-	// 测试文本节点
+// testTextNode 测试文本节点
+func testTextNode(t *testing.T, doc *Document) {
+	rootElement := doc.Children[0].(*Element)
 	textNode, ok := rootElement.Children[0].(*Text)
 	if !ok {
 		t.Fatalf("expected Text node, got %T", rootElement.Children[0])
@@ -85,8 +108,11 @@ func TestASTNodeTypes(t *testing.T) {
 	if textNode.String() != "Hello World" {
 		t.Errorf("expected 'Hello World', got %q", textNode.String())
 	}
+}
 
-	// 测试自闭合元素
+// testSelfCloseElement 测试自闭合元素
+func testSelfCloseElement(t *testing.T, doc *Document) {
+	rootElement := doc.Children[0].(*Element)
 	imgElement, ok := rootElement.Children[1].(*Element)
 	if !ok {
 		t.Fatalf("expected Element, got %T", rootElement.Children[1])
@@ -112,68 +138,88 @@ func TestASTNodeTypes(t *testing.T) {
 // TestAllNodeTypes 测试所有节点类型的基本方法
 func TestAllNodeTypes(t *testing.T) {
 	t.Run("Document methods", func(t *testing.T) {
-		doc := &Document{
-			Pos:      Position{Line: 1, Column: 1, Offset: 0},
-			Children: []Node{},
-		}
-
-		if doc.Type() != NodeTypeDocument {
-			t.Errorf("Expected NodeTypeDocument, got %v", doc.Type())
-		}
-
-		pos := doc.Position()
-		if pos.Line != 1 || pos.Column != 1 || pos.Offset != 0 {
-			t.Errorf("Expected position 1:1:0, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
-		}
-
-		if doc.String() != "Document" {
-			t.Errorf("Expected 'Document', got '%s'", doc.String())
-		}
+		testDocumentMethods(t)
 	})
 
 	t.Run("Comment methods", func(t *testing.T) {
-		comment := &Comment{
-			Content: "This is a comment with some text",
-			Pos:     Position{Line: 3, Column: 5, Offset: 75},
-		}
-
-		if comment.Type() != NodeTypeComment {
-			t.Errorf("Expected NodeTypeComment, got %v", comment.Type())
-		}
-
-		pos := comment.Position()
-		if pos.Line != 3 || pos.Column != 5 || pos.Offset != 75 {
-			t.Errorf("Expected position 3:5:75, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
-		}
-
-		if comment.String() != "This is a comment with some text" {
-			t.Errorf("Expected comment content, got '%s'", comment.String())
-		}
+		testCommentMethods(t)
 	})
 
 	t.Run("Text Position method", func(t *testing.T) {
-		text := &Text{
-			Content: "Some text content",
-			Pos:     Position{Line: 4, Column: 8, Offset: 95},
-		}
-
-		pos := text.Position()
-		if pos.Line != 4 || pos.Column != 8 || pos.Offset != 95 {
-			t.Errorf("Expected position 4:8:95, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
-		}
+		testTextPositionMethod(t)
 	})
 
 	t.Run("Element Position method", func(t *testing.T) {
-		element := &Element{
-			TagName: "div",
-			Pos:     Position{Line: 2, Column: 3, Offset: 25},
-		}
-
-		pos := element.Position()
-		if pos.Line != 2 || pos.Column != 3 || pos.Offset != 25 {
-			t.Errorf("Expected position 2:3:25, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
-		}
+		testElementPositionMethod(t)
 	})
+}
+
+// testDocumentMethods 测试Document节点的方法
+func testDocumentMethods(t *testing.T) {
+	doc := &Document{
+		Pos:      Position{Line: 1, Column: 1, Offset: 0},
+		Children: []Node{},
+	}
+
+	if doc.Type() != NodeTypeDocument {
+		t.Errorf("Expected NodeTypeDocument, got %v", doc.Type())
+	}
+
+	pos := doc.Position()
+	if pos.Line != 1 || pos.Column != 1 || pos.Offset != 0 {
+		t.Errorf("Expected position 1:1:0, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
+	}
+
+	if doc.String() != "Document" {
+		t.Errorf("Expected 'Document', got '%s'", doc.String())
+	}
+}
+
+// testCommentMethods 测试Comment节点的方法
+func testCommentMethods(t *testing.T) {
+	comment := &Comment{
+		Content: "This is a comment with some text",
+		Pos:     Position{Line: 3, Column: 5, Offset: 75},
+	}
+
+	if comment.Type() != NodeTypeComment {
+		t.Errorf("Expected NodeTypeComment, got %v", comment.Type())
+	}
+
+	pos := comment.Position()
+	if pos.Line != 3 || pos.Column != 5 || pos.Offset != 75 {
+		t.Errorf("Expected position 3:5:75, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
+	}
+
+	if comment.String() != "This is a comment with some text" {
+		t.Errorf("Expected comment content, got '%s'", comment.String())
+	}
+}
+
+// testTextPositionMethod 测试Text节点的Position方法
+func testTextPositionMethod(t *testing.T) {
+	text := &Text{
+		Content: "Some text content",
+		Pos:     Position{Line: 4, Column: 8, Offset: 95},
+	}
+
+	pos := text.Position()
+	if pos.Line != 4 || pos.Column != 8 || pos.Offset != 95 {
+		t.Errorf("Expected position 4:8:95, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
+	}
+}
+
+// testElementPositionMethod 测试Element节点的Position方法
+func testElementPositionMethod(t *testing.T) {
+	element := &Element{
+		TagName: "div",
+		Pos:     Position{Line: 2, Column: 3, Offset: 25},
+	}
+
+	pos := element.Position()
+	if pos.Line != 2 || pos.Column != 3 || pos.Offset != 25 {
+		t.Errorf("Expected position 2:3:25, got %d:%d:%d", pos.Line, pos.Column, pos.Offset)
+	}
 }
 
 // TestProcessingInstructionNode 测试ProcessingInstruction节点

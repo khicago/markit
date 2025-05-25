@@ -16,109 +16,22 @@ func TestParserBasicParsing(t *testing.T) {
 		{
 			name:  "simple document",
 			input: "<doc><p>hello</p></doc>",
-			check: func(t *testing.T, doc *Document) {
-				if len(doc.Children) != 1 {
-					t.Errorf("expected 1 child, got %d", len(doc.Children))
-					return
-				}
-
-				docElement, ok := doc.Children[0].(*Element)
-				if !ok {
-					t.Errorf("expected Element, got %T", doc.Children[0])
-					return
-				}
-
-				if docElement.TagName != "doc" {
-					t.Errorf("expected tag name 'doc', got %q", docElement.TagName)
-				}
-
-				if len(docElement.Children) != 1 {
-					t.Errorf("expected 1 child in doc, got %d", len(docElement.Children))
-					return
-				}
-
-				pElement, ok := docElement.Children[0].(*Element)
-				if !ok {
-					t.Errorf("expected Element, got %T", docElement.Children[0])
-					return
-				}
-
-				if pElement.TagName != "p" {
-					t.Errorf("expected tag name 'p', got %q", pElement.TagName)
-				}
-			},
+			check: checkSimpleDocument,
 		},
 		{
 			name:  "self-closing element",
 			input: `<doc><image token="test" /></doc>`,
-			check: func(t *testing.T, doc *Document) {
-				docElement := doc.Children[0].(*Element)
-				imageElement := docElement.Children[0].(*Element)
-
-				if imageElement.TagName != "image" {
-					t.Errorf("expected tag name 'image', got %q", imageElement.TagName)
-				}
-
-				if !imageElement.SelfClose {
-					t.Error("expected self-close element")
-				}
-
-				if imageElement.Attributes["token"] != "test" {
-					t.Errorf("expected token attribute 'test', got %q", imageElement.Attributes["token"])
-				}
-			},
+			check: checkSelfClosingElement,
 		},
 		{
 			name:  "boolean attributes",
 			input: `<doc><t b tc-blue>text</t></doc>`,
-			check: func(t *testing.T, doc *Document) {
-				docElement := doc.Children[0].(*Element)
-				tElement := docElement.Children[0].(*Element)
-
-				if tElement.TagName != "t" {
-					t.Errorf("expected tag name 't', got %q", tElement.TagName)
-				}
-
-				if tElement.Attributes["b"] != "" {
-					t.Errorf("expected boolean attribute 'b' to be empty, got %q", tElement.Attributes["b"])
-				}
-
-				if tElement.Attributes["tc-blue"] != "" {
-					t.Errorf("expected boolean attribute 'tc-blue' to be empty, got %q", tElement.Attributes["tc-blue"])
-				}
-
-				textNode := tElement.Children[0].(*Text)
-				if textNode.Content != "text" {
-					t.Errorf("expected text content 'text', got %q", textNode.Content)
-				}
-			},
+			check: checkBooleanAttributes,
 		},
 		{
 			name:  "nested elements",
 			input: "<root><level1><level2><level3>deep content</level3></level2></level1></root>",
-			check: func(t *testing.T, doc *Document) {
-				root := doc.Children[0].(*Element)
-				level1 := root.Children[0].(*Element)
-				level2 := level1.Children[0].(*Element)
-				level3 := level2.Children[0].(*Element)
-				text := level3.Children[0].(*Text)
-
-				if root.TagName != "root" {
-					t.Errorf("expected root tag name 'root', got %q", root.TagName)
-				}
-				if level1.TagName != "level1" {
-					t.Errorf("expected level1 tag name 'level1', got %q", level1.TagName)
-				}
-				if level2.TagName != "level2" {
-					t.Errorf("expected level2 tag name 'level2', got %q", level2.TagName)
-				}
-				if level3.TagName != "level3" {
-					t.Errorf("expected level3 tag name 'level3', got %q", level3.TagName)
-				}
-				if text.Content != "deep content" {
-					t.Errorf("expected text content 'deep content', got %q", text.Content)
-				}
-			},
+			check: checkNestedElements,
 		},
 	}
 
@@ -133,6 +46,105 @@ func TestParserBasicParsing(t *testing.T) {
 
 			tt.check(t, doc)
 		})
+	}
+}
+
+// checkSimpleDocument 检查简单文档结构
+func checkSimpleDocument(t *testing.T, doc *Document) {
+	if len(doc.Children) != 1 {
+		t.Errorf("expected 1 child, got %d", len(doc.Children))
+		return
+	}
+
+	docElement, ok := doc.Children[0].(*Element)
+	if !ok {
+		t.Errorf("expected Element, got %T", doc.Children[0])
+		return
+	}
+
+	if docElement.TagName != "doc" {
+		t.Errorf("expected tag name 'doc', got %q", docElement.TagName)
+	}
+
+	if len(docElement.Children) != 1 {
+		t.Errorf("expected 1 child in doc, got %d", len(docElement.Children))
+		return
+	}
+
+	pElement, ok := docElement.Children[0].(*Element)
+	if !ok {
+		t.Errorf("expected Element, got %T", docElement.Children[0])
+		return
+	}
+
+	if pElement.TagName != "p" {
+		t.Errorf("expected tag name 'p', got %q", pElement.TagName)
+	}
+}
+
+// checkSelfClosingElement 检查自闭合元素
+func checkSelfClosingElement(t *testing.T, doc *Document) {
+	docElement := doc.Children[0].(*Element)
+	imageElement := docElement.Children[0].(*Element)
+
+	if imageElement.TagName != "image" {
+		t.Errorf("expected tag name 'image', got %q", imageElement.TagName)
+	}
+
+	if !imageElement.SelfClose {
+		t.Error("expected self-close element")
+	}
+
+	if imageElement.Attributes["token"] != "test" {
+		t.Errorf("expected token attribute 'test', got %q", imageElement.Attributes["token"])
+	}
+}
+
+// checkBooleanAttributes 检查布尔属性
+func checkBooleanAttributes(t *testing.T, doc *Document) {
+	docElement := doc.Children[0].(*Element)
+	tElement := docElement.Children[0].(*Element)
+
+	if tElement.TagName != "t" {
+		t.Errorf("expected tag name 't', got %q", tElement.TagName)
+	}
+
+	if tElement.Attributes["b"] != "" {
+		t.Errorf("expected boolean attribute 'b' to be empty, got %q", tElement.Attributes["b"])
+	}
+
+	if tElement.Attributes["tc-blue"] != "" {
+		t.Errorf("expected boolean attribute 'tc-blue' to be empty, got %q", tElement.Attributes["tc-blue"])
+	}
+
+	textNode := tElement.Children[0].(*Text)
+	if textNode.Content != "text" {
+		t.Errorf("expected text content 'text', got %q", textNode.Content)
+	}
+}
+
+// checkNestedElements 检查嵌套元素
+func checkNestedElements(t *testing.T, doc *Document) {
+	root := doc.Children[0].(*Element)
+	level1 := root.Children[0].(*Element)
+	level2 := level1.Children[0].(*Element)
+	level3 := level2.Children[0].(*Element)
+	text := level3.Children[0].(*Text)
+
+	if root.TagName != "root" {
+		t.Errorf("expected root tag name 'root', got %q", root.TagName)
+	}
+	if level1.TagName != "level1" {
+		t.Errorf("expected level1 tag name 'level1', got %q", level1.TagName)
+	}
+	if level2.TagName != "level2" {
+		t.Errorf("expected level2 tag name 'level2', got %q", level2.TagName)
+	}
+	if level3.TagName != "level3" {
+		t.Errorf("expected level3 tag name 'level3', got %q", level3.TagName)
+	}
+	if text.Content != "deep content" {
+		t.Errorf("expected text content 'deep content', got %q", text.Content)
 	}
 }
 

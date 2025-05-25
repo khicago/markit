@@ -85,155 +85,184 @@ func TestParseNodeErrorHandling(t *testing.T) {
 // TestSpecialNodeTypeParsing 测试特殊节点类型的解析
 func TestSpecialNodeTypeParsing(t *testing.T) {
 	t.Run("ProcessingInstruction parsing", func(t *testing.T) {
-		// 创建一个模拟的ProcessingInstruction token
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenProcessingInstruction,
-			Value:    "xml version=\"1.0\"",
-			Position: Position{Line: 1, Column: 1},
-		}
-		parser.peek = Token{Type: TokenEOF}
-
-		node, err := parser.parseProcessingInstruction()
-		if err != nil {
-			t.Fatalf("parse error: %v", err)
-		}
-
-		pi, ok := node.(*ProcessingInstruction)
-		if !ok {
-			t.Fatalf("expected ProcessingInstruction, got %T", node)
-		}
-
-		if pi.Target != "xml version=\"1.0\"" {
-			t.Errorf("expected target 'xml version=\"1.0\"', got %q", pi.Target)
-		}
-
-		if pi.Content != "xml version=\"1.0\"" {
-			t.Errorf("expected content 'xml version=\"1.0\"', got %q", pi.Content)
-		}
+		testProcessingInstructionParsing(t)
 	})
 
 	t.Run("Doctype parsing", func(t *testing.T) {
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenDoctype,
-			Value:    "html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"",
-			Position: Position{Line: 1, Column: 1},
-		}
-		parser.peek = Token{Type: TokenEOF}
-
-		node, err := parser.parseDoctype()
-		if err != nil {
-			t.Fatalf("parse error: %v", err)
-		}
-
-		doctype, ok := node.(*Doctype)
-		if !ok {
-			t.Fatalf("expected Doctype, got %T", node)
-		}
-
-		expected := "html PUBLIC \"-//W3C//DTD HTML 4.01//EN\""
-		if doctype.Content != expected {
-			t.Errorf("expected content %q, got %q", expected, doctype.Content)
-		}
+		testDoctypeParsing(t)
 	})
 
 	t.Run("CDATA parsing", func(t *testing.T) {
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenCDATA,
-			Value:    "function() { return 'test'; }",
-			Position: Position{Line: 1, Column: 1},
-		}
-		parser.peek = Token{Type: TokenEOF}
-
-		node, err := parser.parseCDATA()
-		if err != nil {
-			t.Fatalf("parse error: %v", err)
-		}
-
-		cdata, ok := node.(*CDATA)
-		if !ok {
-			t.Fatalf("expected CDATA, got %T", node)
-		}
-
-		expected := "function() { return 'test'; }"
-		if cdata.Content != expected {
-			t.Errorf("expected content %q, got %q", expected, cdata.Content)
-		}
+		testCDATAParsing(t)
 	})
 
 	t.Run("Wrong token type for ProcessingInstruction", func(t *testing.T) {
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenText, // 错误的token类型
-			Value:    "text",
-			Position: Position{Line: 1, Column: 1},
-		}
-
-		_, err := parser.parseProcessingInstruction()
-		if err == nil {
-			t.Error("expected error for wrong token type, got nil")
-		}
-
-		parseErr, ok := err.(*ParseError)
-		if !ok {
-			t.Errorf("expected ParseError, got %T", err)
-		}
-
-		expectedMsg := "expected processing instruction token, got TEXT"
-		if parseErr.Message != expectedMsg {
-			t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
-		}
+		testWrongTokenTypeForProcessingInstruction(t)
 	})
 
 	t.Run("Wrong token type for Doctype", func(t *testing.T) {
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenText,
-			Value:    "text",
-			Position: Position{Line: 1, Column: 1},
-		}
-
-		_, err := parser.parseDoctype()
-		if err == nil {
-			t.Error("expected error for wrong token type, got nil")
-		}
-
-		parseErr, ok := err.(*ParseError)
-		if !ok {
-			t.Errorf("expected ParseError, got %T", err)
-		}
-
-		expectedMsg := "expected doctype token, got TEXT"
-		if parseErr.Message != expectedMsg {
-			t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
-		}
+		testWrongTokenTypeForDoctype(t)
 	})
 
 	t.Run("Wrong token type for CDATA", func(t *testing.T) {
-		parser := NewParser("")
-		parser.current = Token{
-			Type:     TokenText,
-			Value:    "text",
-			Position: Position{Line: 1, Column: 1},
-		}
-
-		_, err := parser.parseCDATA()
-		if err == nil {
-			t.Error("expected error for wrong token type, got nil")
-		}
-
-		parseErr, ok := err.(*ParseError)
-		if !ok {
-			t.Errorf("expected ParseError, got %T", err)
-		}
-
-		expectedMsg := "expected CDATA token, got TEXT"
-		if parseErr.Message != expectedMsg {
-			t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
-		}
+		testWrongTokenTypeForCDATA(t)
 	})
+}
+
+// testProcessingInstructionParsing 测试ProcessingInstruction解析
+func testProcessingInstructionParsing(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenProcessingInstruction,
+		Value:    "xml version=\"1.0\"",
+		Position: Position{Line: 1, Column: 1},
+	}
+	parser.peek = Token{Type: TokenEOF}
+
+	node, err := parser.parseProcessingInstruction()
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	pi, ok := node.(*ProcessingInstruction)
+	if !ok {
+		t.Fatalf("expected ProcessingInstruction, got %T", node)
+	}
+
+	if pi.Target != "xml version=\"1.0\"" {
+		t.Errorf("expected target 'xml version=\"1.0\"', got %q", pi.Target)
+	}
+
+	if pi.Content != "xml version=\"1.0\"" {
+		t.Errorf("expected content 'xml version=\"1.0\"', got %q", pi.Content)
+	}
+}
+
+// testDoctypeParsing 测试Doctype解析
+func testDoctypeParsing(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenDoctype,
+		Value:    "html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"",
+		Position: Position{Line: 1, Column: 1},
+	}
+	parser.peek = Token{Type: TokenEOF}
+
+	node, err := parser.parseDoctype()
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	doctype, ok := node.(*Doctype)
+	if !ok {
+		t.Fatalf("expected Doctype, got %T", node)
+	}
+
+	expected := "html PUBLIC \"-//W3C//DTD HTML 4.01//EN\""
+	if doctype.Content != expected {
+		t.Errorf("expected content %q, got %q", expected, doctype.Content)
+	}
+}
+
+// testCDATAParsing 测试CDATA解析
+func testCDATAParsing(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenCDATA,
+		Value:    "function() { return 'test'; }",
+		Position: Position{Line: 1, Column: 1},
+	}
+	parser.peek = Token{Type: TokenEOF}
+
+	node, err := parser.parseCDATA()
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	cdata, ok := node.(*CDATA)
+	if !ok {
+		t.Fatalf("expected CDATA, got %T", node)
+	}
+
+	expected := "function() { return 'test'; }"
+	if cdata.Content != expected {
+		t.Errorf("expected content %q, got %q", expected, cdata.Content)
+	}
+}
+
+// testWrongTokenTypeForProcessingInstruction 测试ProcessingInstruction错误token类型
+func testWrongTokenTypeForProcessingInstruction(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenText, // 错误的token类型
+		Value:    "text",
+		Position: Position{Line: 1, Column: 1},
+	}
+
+	_, err := parser.parseProcessingInstruction()
+	if err == nil {
+		t.Error("expected error for wrong token type, got nil")
+	}
+
+	parseErr, ok := err.(*ParseError)
+	if !ok {
+		t.Errorf("expected ParseError, got %T", err)
+	}
+
+	expectedMsg := "expected processing instruction token, got TEXT"
+	if parseErr.Message != expectedMsg {
+		t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
+	}
+}
+
+// testWrongTokenTypeForDoctype 测试Doctype错误token类型
+func testWrongTokenTypeForDoctype(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenText,
+		Value:    "text",
+		Position: Position{Line: 1, Column: 1},
+	}
+
+	_, err := parser.parseDoctype()
+	if err == nil {
+		t.Error("expected error for wrong token type, got nil")
+	}
+
+	parseErr, ok := err.(*ParseError)
+	if !ok {
+		t.Errorf("expected ParseError, got %T", err)
+	}
+
+	expectedMsg := "expected doctype token, got TEXT"
+	if parseErr.Message != expectedMsg {
+		t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
+	}
+}
+
+// testWrongTokenTypeForCDATA 测试CDATA错误token类型
+func testWrongTokenTypeForCDATA(t *testing.T) {
+	parser := NewParser("")
+	parser.current = Token{
+		Type:     TokenText,
+		Value:    "text",
+		Position: Position{Line: 1, Column: 1},
+	}
+
+	_, err := parser.parseCDATA()
+	if err == nil {
+		t.Error("expected error for wrong token type, got nil")
+	}
+
+	parseErr, ok := err.(*ParseError)
+	if !ok {
+		t.Errorf("expected ParseError, got %T", err)
+	}
+
+	expectedMsg := "expected CDATA token, got TEXT"
+	if parseErr.Message != expectedMsg {
+		t.Errorf("expected error message %q, got %q", expectedMsg, parseErr.Message)
+	}
 }
 
 // TestParseTextErrorHandling 测试parseText函数的错误处理

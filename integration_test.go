@@ -130,7 +130,25 @@ func TestPrettyPrint(t *testing.T) {
 // TestComplexIntegrationScenarios 测试复杂的集成场景
 func TestComplexIntegrationScenarios(t *testing.T) {
 	t.Run("mixed content with all node types", func(t *testing.T) {
-		input := `<!-- This is a complex document -->
+		testMixedContentWithAllNodeTypes(t)
+	})
+
+	t.Run("error recovery and partial parsing", func(t *testing.T) {
+		testErrorRecoveryAndPartialParsing(t)
+	})
+
+	t.Run("performance with large document", func(t *testing.T) {
+		testPerformanceWithLargeDocument(t)
+	})
+
+	t.Run("unicode and special characters", func(t *testing.T) {
+		testUnicodeAndSpecialCharacters(t)
+	})
+}
+
+// testMixedContentWithAllNodeTypes 测试包含所有节点类型的混合内容
+func testMixedContentWithAllNodeTypes(t *testing.T) {
+	input := `<!-- This is a complex document -->
 <html lang="en">
 <head>
     <title>Test Document</title>
@@ -148,135 +166,137 @@ func TestComplexIntegrationScenarios(t *testing.T) {
 </body>
 </html>`
 
-		parser := NewParser(input)
-		doc, err := parser.Parse()
-		if err != nil {
-			t.Fatalf("Parse failed: %v", err)
-		}
+	parser := NewParser(input)
+	doc, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
 
-		// 验证文档结构
-		if len(doc.Children) < 2 {
-			t.Fatalf("Expected at least 2 top-level children, got %d", len(doc.Children))
-		}
+	// 验证文档结构
+	if len(doc.Children) < 2 {
+		t.Fatalf("Expected at least 2 top-level children, got %d", len(doc.Children))
+	}
 
-		// 验证注释
-		comment, ok := doc.Children[0].(*Comment)
-		if !ok {
-			t.Fatalf("Expected Comment, got %T", doc.Children[0])
-		}
-		if !strings.Contains(comment.Content, "complex document") {
-			t.Errorf("Expected comment to contain 'complex document', got '%s'", comment.Content)
-		}
+	// 验证注释
+	comment, ok := doc.Children[0].(*Comment)
+	if !ok {
+		t.Fatalf("Expected Comment, got %T", doc.Children[0])
+	}
+	if !strings.Contains(comment.Content, "complex document") {
+		t.Errorf("Expected comment to contain 'complex document', got '%s'", comment.Content)
+	}
 
-		// 验证根元素
-		html, ok := doc.Children[1].(*Element)
-		if !ok {
-			t.Fatalf("Expected Element, got %T", doc.Children[1])
-		}
-		if html.TagName != "html" {
-			t.Errorf("Expected tag name 'html', got '%s'", html.TagName)
-		}
+	// 验证根元素
+	html, ok := doc.Children[1].(*Element)
+	if !ok {
+		t.Fatalf("Expected Element, got %T", doc.Children[1])
+	}
+	if html.TagName != "html" {
+		t.Errorf("Expected tag name 'html', got '%s'", html.TagName)
+	}
 
-		// 验证属性
-		if html.Attributes["lang"] != "en" {
-			t.Errorf("Expected lang attribute 'en', got '%s'", html.Attributes["lang"])
-		}
-	})
+	// 验证属性
+	if html.Attributes["lang"] != "en" {
+		t.Errorf("Expected lang attribute 'en', got '%s'", html.Attributes["lang"])
+	}
+}
 
-	t.Run("error recovery and partial parsing", func(t *testing.T) {
-		input := `<root>
+// testErrorRecoveryAndPartialParsing 测试错误恢复和部分解析
+func testErrorRecoveryAndPartialParsing(t *testing.T) {
+	input := `<root>
     <valid>content</valid>
     <invalid unclosed
     <another>valid content</another>
 </root>`
 
-		parser := NewParser(input)
-		_, err := parser.Parse()
+	parser := NewParser(input)
+	_, err := parser.Parse()
 
-		// 应该有错误，但我们测试错误处理
-		if err == nil {
-			t.Log("Unexpectedly no error, but that's okay for this test")
+	// 应该有错误，但我们测试错误处理
+	if err == nil {
+		t.Log("Unexpectedly no error, but that's okay for this test")
+	} else {
+		// 修正：检查错误类型，可能是*errors.errorString而不是*ParseError
+		if strings.Contains(err.Error(), "unexpected") || strings.Contains(err.Error(), "invalid") {
+			t.Logf("Got expected error: %v", err)
 		} else {
-			// 修正：检查错误类型，可能是*errors.errorString而不是*ParseError
-			if strings.Contains(err.Error(), "unexpected") || strings.Contains(err.Error(), "invalid") {
-				t.Logf("Got expected error: %v", err)
-			} else {
-				t.Errorf("Unexpected error type or message: %v", err)
-			}
+			t.Errorf("Unexpected error type or message: %v", err)
 		}
-	})
+	}
+}
 
-	t.Run("performance with large document", func(t *testing.T) {
-		// 生成一个较大的文档
-		var builder strings.Builder
-		builder.WriteString("<root>")
+// testPerformanceWithLargeDocument 测试大文档的性能
+func testPerformanceWithLargeDocument(t *testing.T) {
+	// 生成一个较大的文档
+	var builder strings.Builder
+	builder.WriteString("<root>")
 
-		for i := 0; i < 1000; i++ {
-			builder.WriteString("<item id=\"")
-			builder.WriteString(fmt.Sprintf("%d", i))
-			builder.WriteString("\" class=\"test-item\">")
-			builder.WriteString("Content for item ")
-			builder.WriteString(fmt.Sprintf("%d", i))
-			builder.WriteString("</item>")
-		}
+	for i := 0; i < 1000; i++ {
+		builder.WriteString("<item id=\"")
+		builder.WriteString(fmt.Sprintf("%d", i))
+		builder.WriteString("\" class=\"test-item\">")
+		builder.WriteString("Content for item ")
+		builder.WriteString(fmt.Sprintf("%d", i))
+		builder.WriteString("</item>")
+	}
 
-		builder.WriteString("</root>")
+	builder.WriteString("</root>")
 
-		parser := NewParser(builder.String())
-		doc, err := parser.Parse()
-		if err != nil {
-			t.Fatalf("Parse failed: %v", err)
-		}
+	parser := NewParser(builder.String())
+	doc, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
 
-		root := doc.Children[0].(*Element)
-		if len(root.Children) != 1000 {
-			t.Errorf("Expected 1000 children, got %d", len(root.Children))
-		}
+	root := doc.Children[0].(*Element)
+	if len(root.Children) != 1000 {
+		t.Errorf("Expected 1000 children, got %d", len(root.Children))
+	}
 
-		// 验证第一个和最后一个元素
-		firstItem := root.Children[0].(*Element)
-		if firstItem.Attributes["id"] != "0" {
-			t.Errorf("Expected first item id '0', got '%s'", firstItem.Attributes["id"])
-		}
+	// 验证第一个和最后一个元素
+	firstItem := root.Children[0].(*Element)
+	if firstItem.Attributes["id"] != "0" {
+		t.Errorf("Expected first item id '0', got '%s'", firstItem.Attributes["id"])
+	}
 
-		lastItem := root.Children[999].(*Element)
-		if lastItem.Attributes["id"] != "999" {
-			t.Errorf("Expected last item id '999', got '%s'", lastItem.Attributes["id"])
-		}
-	})
+	lastItem := root.Children[999].(*Element)
+	if lastItem.Attributes["id"] != "999" {
+		t.Errorf("Expected last item id '999', got '%s'", lastItem.Attributes["id"])
+	}
+}
 
-	t.Run("unicode and special characters", func(t *testing.T) {
-		input := `<root>
+// testUnicodeAndSpecialCharacters 测试Unicode和特殊字符
+func testUnicodeAndSpecialCharacters(t *testing.T) {
+	input := `<root>
     <chinese>你好世界</chinese>
     <emoji>🌟⭐✨</emoji>
     <entities>&lt;&gt;&amp;&quot;&#39;</entities>
     <mixed>Hello 世界 🌍 &amp; more</mixed>
 </root>`
 
-		parser := NewParser(input)
-		doc, err := parser.Parse()
-		if err != nil {
-			t.Fatalf("Parse failed: %v", err)
-		}
+	parser := NewParser(input)
+	doc, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
 
-		root := doc.Children[0].(*Element)
-		if len(root.Children) < 4 {
-			t.Fatalf("Expected at least 4 children, got %d", len(root.Children))
-		}
+	root := doc.Children[0].(*Element)
+	if len(root.Children) < 4 {
+		t.Fatalf("Expected at least 4 children, got %d", len(root.Children))
+	}
 
-		// 验证中文内容
-		chinese := root.Children[0].(*Element)
-		if chinese.TagName != "chinese" {
-			t.Errorf("Expected tag name 'chinese', got '%s'", chinese.TagName)
-		}
+	// 验证中文内容
+	chinese := root.Children[0].(*Element)
+	if chinese.TagName != "chinese" {
+		t.Errorf("Expected tag name 'chinese', got '%s'", chinese.TagName)
+	}
 
-		if len(chinese.Children) > 0 {
-			text := chinese.Children[0].(*Text)
-			if !strings.Contains(text.Content, "你好世界") {
-				t.Errorf("Expected Chinese text, got '%s'", text.Content)
-			}
+	if len(chinese.Children) > 0 {
+		text := chinese.Children[0].(*Text)
+		if !strings.Contains(text.Content, "你好世界") {
+			t.Errorf("Expected Chinese text, got '%s'", text.Content)
 		}
-	})
+	}
 }
 
 // TestConfigurationIntegration 测试配置集成

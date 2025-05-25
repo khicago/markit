@@ -45,7 +45,21 @@ func TestASTConstruction(t *testing.T) {
 		t.Fatalf("parse error: %v", err)
 	}
 
-	// 验证文档结构
+	t.Run("document structure", func(t *testing.T) {
+		testDocumentStructure(t, doc)
+	})
+
+	t.Run("header element", func(t *testing.T) {
+		testHeaderElement(t, doc)
+	})
+
+	t.Run("content element", func(t *testing.T) {
+		testContentElement(t, doc)
+	})
+}
+
+// testDocumentStructure 测试文档基本结构
+func testDocumentStructure(t *testing.T, doc *Document) {
 	if len(doc.Children) != 1 {
 		t.Errorf("expected 1 child in document, got %d", len(doc.Children))
 	}
@@ -58,9 +72,13 @@ func TestASTConstruction(t *testing.T) {
 	if len(documentElement.Children) != 2 {
 		t.Errorf("expected 2 children in document element, got %d", len(documentElement.Children))
 	}
+}
 
-	// 验证header元素
+// testHeaderElement 测试header元素
+func testHeaderElement(t *testing.T, doc *Document) {
+	documentElement := doc.Children[0].(*Element)
 	headerElement := documentElement.Children[0].(*Element)
+
 	if headerElement.TagName != "header" {
 		t.Errorf("expected tag name 'header', got %q", headerElement.TagName)
 	}
@@ -78,9 +96,13 @@ func TestASTConstruction(t *testing.T) {
 	if titleElement.TagName != "title" {
 		t.Errorf("expected tag name 'title', got %q", titleElement.TagName)
 	}
+}
 
-	// 验证content元素
+// testContentElement 测试content元素
+func testContentElement(t *testing.T, doc *Document) {
+	documentElement := doc.Children[0].(*Element)
 	contentElement := documentElement.Children[1].(*Element)
+
 	if contentElement.TagName != "content" {
 		t.Errorf("expected tag name 'content', got %q", contentElement.TagName)
 	}
@@ -94,7 +116,8 @@ func TestASTConstruction(t *testing.T) {
 		t.Errorf("expected 2 children in content, got %d", len(contentElement.Children))
 	}
 
-	for i, expectedText := range []string{"First paragraph", "Second paragraph"} {
+	expectedTexts := []string{"First paragraph", "Second paragraph"}
+	for i, expectedText := range expectedTexts {
 		pElement := contentElement.Children[i].(*Element)
 		if pElement.TagName != "p" {
 			t.Errorf("expected tag name 'p' at index %d, got %q", i, pElement.TagName)
@@ -189,6 +212,21 @@ func TestASTNestedStructure(t *testing.T) {
 		t.Fatalf("parse error: %v", err)
 	}
 
+	t.Run("html structure", func(t *testing.T) {
+		testHtmlStructure(t, doc)
+	})
+
+	t.Run("nested div structure", func(t *testing.T) {
+		testNestedDivStructure(t, doc)
+	})
+
+	t.Run("column content", func(t *testing.T) {
+		testColumnContent(t, doc)
+	})
+}
+
+// testHtmlStructure 测试HTML基本结构
+func testHtmlStructure(t *testing.T, doc *Document) {
 	htmlElement := doc.Children[0].(*Element)
 	if htmlElement.TagName != "html" {
 		t.Errorf("expected tag name 'html', got %q", htmlElement.TagName)
@@ -198,19 +236,21 @@ func TestASTNestedStructure(t *testing.T) {
 		t.Errorf("expected 2 children in html, got %d", len(htmlElement.Children))
 	}
 
-	// 验证head元素
-	headElement := htmlElement.Children[0].(*Element)
-	if headElement.TagName != "head" {
-		t.Errorf("expected tag name 'head', got %q", headElement.TagName)
+	// 验证head和body元素
+	expectedElements := []string{"head", "body"}
+	for i, expectedTag := range expectedElements {
+		element := htmlElement.Children[i].(*Element)
+		if element.TagName != expectedTag {
+			t.Errorf("expected tag name %q at index %d, got %q", expectedTag, i, element.TagName)
+		}
 	}
+}
 
-	// 验证body元素
+// testNestedDivStructure 测试嵌套的div结构
+func testNestedDivStructure(t *testing.T, doc *Document) {
+	htmlElement := doc.Children[0].(*Element)
 	bodyElement := htmlElement.Children[1].(*Element)
-	if bodyElement.TagName != "body" {
-		t.Errorf("expected tag name 'body', got %q", bodyElement.TagName)
-	}
 
-	// 验证嵌套的div结构
 	containerDiv := bodyElement.Children[0].(*Element)
 	if containerDiv.TagName != "div" || containerDiv.Attributes["class"] != "container" {
 		t.Errorf("expected container div, got %q with class %q", containerDiv.TagName, containerDiv.Attributes["class"])
@@ -224,8 +264,17 @@ func TestASTNestedStructure(t *testing.T) {
 	if len(rowDiv.Children) != 2 {
 		t.Errorf("expected 2 column divs, got %d", len(rowDiv.Children))
 	}
+}
 
-	for i, expectedText := range []string{"Column 1", "Column 2"} {
+// testColumnContent 测试列内容
+func testColumnContent(t *testing.T, doc *Document) {
+	htmlElement := doc.Children[0].(*Element)
+	bodyElement := htmlElement.Children[1].(*Element)
+	containerDiv := bodyElement.Children[0].(*Element)
+	rowDiv := containerDiv.Children[0].(*Element)
+
+	expectedTexts := []string{"Column 1", "Column 2"}
+	for i, expectedText := range expectedTexts {
 		colDiv := rowDiv.Children[i].(*Element)
 		if colDiv.TagName != "div" || colDiv.Attributes["class"] != "col" {
 			t.Errorf("expected col div at index %d, got %q with class %q", i, colDiv.TagName, colDiv.Attributes["class"])
