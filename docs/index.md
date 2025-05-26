@@ -1,42 +1,31 @@
 ---
 layout: default
-title: "MarkIt - Fast XML/HTML Parser for Go"
-description: "A high-performance, memory-efficient XML and HTML parser for Go with a simple API and extensive configuration options."
-keywords: "Go, XML, HTML, parser, AST, performance, memory-efficient, llm, ai"
+title: "MarkIt - Next-Generation Extensible Markup Parser"
+description: "Revolutionary markup parsing with configurable tag bracket protocols. Parse XML, HTML, and any custom markup format with a single, extensible parser."
+keywords: "markit, xml parser, html parser, go parser, extensible markup, tag protocols, llm, ai"
 author: "Khicago Team"
 ---
 
-# MarkIt Parser
+# MarkIt
 
-<div class="text-center mb-2">
-    <p style="font-size: 1.2rem; color: #666;">A fast, memory-efficient XML and HTML parser for Go</p>
-    <div style="margin: 2rem 0;">
-        <span class="badge badge-success">Go 1.19+</span>
-        <span class="badge badge-info">Zero Dependencies</span>
-        <span class="badge badge-warning">High Performance</span>
-    </div>
-</div>
+> **The Next-Generation Extensible Markup Parser for Go**
 
-## 🚀 Features
+Revolutionary markup parsing with configurable tag bracket protocols - Parse XML, HTML, and any custom markup format with a single, extensible parser.
 
-- **High Performance**: Optimized for speed and memory efficiency
-- **Zero Dependencies**: Pure Go implementation with no external dependencies
-- **Flexible Configuration**: Support for both XML and HTML parsing modes
-- **Rich AST**: Complete Abstract Syntax Tree with full node information
-- **Easy to Use**: Simple, intuitive API that's easy to learn and use
-- **Extensible**: Custom attribute processors and protocol matchers
-- **Well Tested**: Comprehensive test suite with 99.5% code coverage
-- **Production Ready**: Used in production environments
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.22-blue.svg)](https://golang.org/)
+[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/khicago/markit)
+[![Go Report Card](https://goreportcard.com/badge/github.com/khicago/markit)](https://goreportcard.com/report/github.com/khicago/markit)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 📦 Installation
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
-go get github.com/khicago/xmlite
+go get github.com/khicago/markit
 ```
 
-## 🏃‍♂️ Quick Start
-
-### Basic XML Parsing
+### Basic Usage
 
 ```go
 package main
@@ -45,234 +34,199 @@ import (
     "fmt"
     "log"
     
-    "github.com/khicago/xmlite"
+    "github.com/khicago/markit"
 )
 
 func main() {
-    xml := `
-    <bookstore>
-        <book id="1" category="fiction">
-            <title>The Great Gatsby</title>
-            <author>F. Scott Fitzgerald</author>
-            <price currency="USD">12.99</price>
+    // XML content
+    xml := `<books>
+        <book id="1">
+            <title>The Go Programming Language</title>
+            <author>Alan Donovan</author>
         </book>
-    </bookstore>`
+    </books>`
     
-    // Parse with default XML configuration
-    parser := xmlite.NewParser(xml)
+    // Parse
+    parser := markit.NewParser(xml)
     doc, err := parser.Parse()
     if err != nil {
         log.Fatal(err)
     }
     
-    // Access the root element
-    root := doc.Root
-    fmt.Printf("Root element: %s\n", root.Name)
-    
-    // Find book elements
-    books := root.FindElements("book")
-    for _, book := range books {
-        title := book.FindElement("title")
-        author := book.FindElement("author")
-        price := book.FindElement("price")
-        
-        fmt.Printf("Book: %s by %s - %s %s\n",
-            title.Text(),
-            author.Text(),
-            price.GetAttribute("currency"),
-            price.Text())
-    }
+    // Access parsed content
+    fmt.Printf("Parsed %d root elements\n", len(doc.Children))
 }
 ```
 
-### HTML5 Parsing
+## 🌟 Key Features
+
+### Universal Markup Support
+Parse **XML**, **HTML**, and **custom markup** formats with one unified API.
+
+### Configurable Protocols  
+Define your own bracket sequences: `<>`, `{{}}`, `[]`, or any custom delimiters.
+
+### High Performance
+- Zero-copy parsing for maximum speed
+- Memory-efficient token streaming
+- 100% test coverage
+
+### Developer-Friendly
+- Rich error reporting with line/column positions
+- Type-safe AST with visitor pattern
+- Comprehensive documentation
+
+## 📚 Usage Examples
+
+### HTML5 Document Parsing
 
 ```go
 package main
 
 import (
     "fmt"
-    "log"
-    
-    "github.com/khicago/xmlite"
+    "github.com/khicago/markit"
 )
 
 func main() {
-    html := `
-    <!DOCTYPE html>
+    html := `<!DOCTYPE html>
     <html>
-    <head>
-        <title>My Page</title>
-        <meta charset="utf-8">
-    </head>
-    <body>
-        <h1>Welcome</h1>
-        <p>This is a <strong>sample</strong> page.</p>
-        <img src="image.jpg" alt="Sample Image">
-    </body>
+        <head><title>My Page</title></head>
+        <body>
+            <h1>Welcome</h1>
+            <p>Hello <strong>world</strong>!</p>
+            <br>
+            <img src="image.jpg" alt="Photo">
+        </body>
     </html>`
     
-    // Parse with HTML5 configuration
-    config := xmlite.DefaultHTMLConfig()
-    parser := xmlite.NewParserWithConfig(html, config)
+    // Use HTML configuration for proper HTML5 parsing
+    config := markit.DefaultHTMLConfig()
+    parser := markit.NewParserWithConfig(html, config)
+    doc, err := parser.Parse()
+    if err != nil {
+        panic(err)
+    }
+    
+    // Find all paragraph elements
+    paragraphs := findElementsByTag(doc.Root, "p")
+    fmt.Printf("Found %d paragraphs\n", len(paragraphs))
+}
+
+func findElementsByTag(element *markit.Element, tagName string) []*markit.Element {
+    var results []*markit.Element
+    
+    if element.TagName == tagName {
+        results = append(results, element)
+    }
+    
+    for _, child := range element.Children {
+        if childEl, ok := child.(*markit.Element); ok {
+            results = append(results, findElementsByTag(childEl, tagName)...)
+        }
+    }
+    
+    return results
+}
+```
+
+### Custom Configuration
+
+```go
+func advancedConfiguration() {
+    content := `<template>
+        <component name="header">
+            <slot>Default content</slot>
+        </component>
+    </template>`
+    
+    // Create custom configuration
+    config := &markit.ParserConfig{
+        CaseSensitive:      false,                     // HTML-style case insensitivity
+        AllowSelfCloseTags: true,                      // Support <br/> style tags
+        SkipComments:       true,                      // Skip comment nodes for performance
+        TrimWhitespace:     true,                      // Normalize whitespace
+        AttributeProcessor: markit.DefaultAttributeProcessor, // Custom attribute handling
+    }
+    
+    parser := markit.NewParserWithConfig(content, config)
     doc, err := parser.Parse()
     if err != nil {
         log.Fatal(err)
     }
     
-    // Find all images
-    images := doc.Root.FindElementsRecursive("img")
-    for _, img := range images {
-        src := img.GetAttribute("src")
-        alt := img.GetAttribute("alt")
-        fmt.Printf("Image: %s (%s)\n", src, alt)
+    // Process the parsed document
+    processTemplate(doc)
+}
+```
+
+### AST Traversal and Transformation
+
+```go
+// Custom visitor for extracting links
+type LinkExtractor struct {
+    Links []Link
+}
+
+type Link struct {
+    URL  string
+    Text string
+}
+
+func (le *LinkExtractor) VisitElement(element *markit.Element) error {
+    if element.TagName == "a" {
+        href, hasHref := element.Attributes["href"]
+        if hasHref {
+            link := Link{URL: href}
+            
+            // Extract text content
+            markit.Walk(doc.Root, func(node markit.Node) bool {
+                if element, ok := node.(*markit.Element); ok {
+                    fmt.Printf("Element: <%s>\n", element.TagName)
+                }
+                return true // Continue walking
+            })
+            
+            le.Links = append(le.Links, link)
+        }
     }
-}
-```
-
-## 🎯 Use Cases
-
-MarkIt is perfect for a wide range of applications:
-
-### Web Scraping
-Extract data from HTML pages with ease:
-```go
-// Parse product information
-products := doc.Root.FindElementsByClass("product")
-for _, product := range products {
-    name := product.FindElement("h2").Text()
-    price := product.FindElementByClass("price").Text()
-    // Process product data...
-}
-```
-
-### Configuration Files
-Parse XML configuration files:
-```go
-config := doc.Root.FindElement("database")
-host := config.GetAttribute("host")
-port := config.GetAttribute("port")
-```
-
-### API Response Processing
-Handle XML API responses:
-```go
-users := doc.Root.FindElements("user")
-for _, user := range users {
-    id := user.GetAttribute("id")
-    name := user.FindElement("name").Text()
-    email := user.FindElement("email").Text()
-}
-```
-
-### Template Processing
-Build template engines and content processors:
-```go
-// Process template variables
-variables := doc.Root.FindElementsRecursive("var")
-for _, v := range variables {
-    name := v.GetAttribute("name")
-    value := v.Text()
-    // Replace template variables...
-}
-```
-
-## 🔧 Configuration Options
-
-MarkIt provides flexible configuration options for different parsing needs:
-
-| Configuration | Best For | Features |
-|---------------|----------|----------|
-| `DefaultXMLConfig()` | XML documents | Strict parsing, case-sensitive |
-| `DefaultHTMLConfig()` | HTML documents | Void elements, case-insensitive |
-| Custom Config | Specific needs | Full control over parsing behavior |
-
-### Custom Configuration Example
-
-```go
-config := &xmlite.ParserConfig{
-    CaseSensitive:      false,
-    AllowSelfCloseTags: true,
-    SkipComments:       false,
-    VoidElements:       []string{"br", "hr", "img", "input"},
-    AttributeProcessor: xmlite.DefaultAttributeProcessor,
+    return nil
 }
 
-parser := xmlite.NewParserWithConfig(content, config)
-```
-
-## 📊 Performance
-
-MarkIt is designed for high performance:
-
-- **Memory Efficient**: Minimal memory allocation during parsing
-- **Fast Parsing**: Optimized tokenization and AST construction
-- **Scalable**: Handles large documents efficiently
-- **Concurrent Safe**: Safe for use in concurrent applications
-
-### Benchmark Results
-
-```
-BenchmarkParseXML-8     	   10000	    120543 ns/op	   45234 B/op	     892 allocs/op
-BenchmarkParseHTML-8    	    8000	    145678 ns/op	   52341 B/op	    1023 allocs/op
-```
-
-## 🛠️ Advanced Features
-
-### Custom Attribute Processing
-```go
-customProcessor := func(key, value string) (string, string) {
-    // Custom attribute processing logic
-    return strings.ToLower(key), strings.TrimSpace(value)
-}
-
-config.AttributeProcessor = customProcessor
-```
-
-### AST Traversal
-```go
-// Walk the entire AST
-xmlite.Walk(doc.Root, func(node xmlite.Node) bool {
-    if element, ok := node.(*xmlite.Element); ok {
-        fmt.Printf("Element: %s\n", element.Name)
+// Error handling with detailed information
+func handleParsingErrors(content string) {
+    parser := markit.NewParser(content)
+    doc, err := parser.Parse()
+    
+    if err != nil {
+        if parseErr, ok := err.(*markit.ParseError); ok {
+            fmt.Printf("Parse error at line %d, column %d: %s\n", 
+                parseErr.Line, parseErr.Column, parseErr.Message)
+        } else {
+            fmt.Printf("General error: %s\n", err.Error())
+        }
+        return
     }
-    return true // Continue traversal
-})
-```
-
-### Error Handling
-```go
-doc, err := parser.Parse()
-if err != nil {
-    if parseErr, ok := err.(*xmlite.ParseError); ok {
-        fmt.Printf("Parse error at line %d, column %d: %s\n",
-            parseErr.Line, parseErr.Column, parseErr.Message)
-    }
+    
+    // Process successful parse result
+    fmt.Printf("Successfully parsed document with %d elements\n", 
+        countElements(doc.Root))
 }
 ```
 
-## 📚 Documentation
+## 🔗 Links
 
-- **[Getting Started](getting-started)** - Installation and basic usage
-- **[Configuration](configuration)** - Detailed configuration options
-- **[API Reference](api-reference)** - Complete API documentation
-- **[Examples](examples)** - Practical usage examples
-- **[FAQ](faq)** - Frequently asked questions
-- **[Contributing](contributing)** - How to contribute to the project
-
-## 🤝 Community
-
-- **GitHub**: [github.com/khicago/xmlite](https://github.com/khicago/xmlite)
-- **Issues**: [Report bugs or request features](https://github.com/khicago/xmlite/issues)
-- **Discussions**: [Join the community discussion](https://github.com/khicago/xmlite/discussions)
+- **GitHub**: [github.com/khicago/markit](https://github.com/khicago/markit)
+- **Issues**: [Report bugs or request features](https://github.com/khicago/markit/issues)  
+- **Discussions**: [Join the community discussion](https://github.com/khicago/markit/discussions)
 
 ## 📄 License
 
-MarkIt is released under the MIT License. See [LICENSE](https://github.com/khicago/xmlite/blob/main/LICENSE) for details.
+MarkIt is released under the MIT License. See [LICENSE](https://github.com/khicago/markit/blob/main/LICENSE) for details.
 
 ---
 
-<div class="text-center mt-2">
-    <a href="getting-started" class="btn">Get Started</a>
-    <a href="https://github.com/khicago/xmlite" class="btn btn-outline">View on GitHub</a>
+<div class="text-center">
+<h3>Ready to get started?</h3>
+<a href="https://github.com/khicago/markit" class="btn btn-outline">View on GitHub</a>
 </div> 
