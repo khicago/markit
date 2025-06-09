@@ -46,7 +46,10 @@ func (l *Lexer) GetConfig() *ParserConfig {
 
 // NextToken 获取下一个 token
 func (l *Lexer) NextToken() Token {
-	l.skipWhitespace()
+	// 只有在 TrimWhitespace 为 true 时才跳过空白字符
+	if l.config != nil && l.config.TrimWhitespace {
+		l.skipWhitespace()
+	}
 
 	pos := Position{
 		Line:   l.line,
@@ -119,7 +122,16 @@ func (l *Lexer) readText(pos Position) Token {
 		l.readChar()
 	}
 
-	content := strings.TrimSpace(text.String())
+	content := text.String()
+	
+	// 根据配置决定是否修剪空白字符
+	if l.config != nil && l.config.TrimWhitespace {
+		content = strings.TrimSpace(content)
+		// 如果修剪后内容为空，跳过这个token
+		if content == "" {
+			return l.NextToken() // 递归获取下一个token
+		}
+	}
 
 	return Token{
 		Type:     TokenText,
@@ -249,9 +261,16 @@ func (l *Lexer) readComment(pos Position) Token {
 		}
 	}
 
+	commentContent := comment.String()
+	
+	// 根据配置决定是否修剪空白字符
+	if l.config != nil && l.config.TrimWhitespace {
+		commentContent = strings.TrimSpace(commentContent)
+	}
+
 	return Token{
 		Type:     TokenComment,
-		Value:    strings.TrimSpace(comment.String()), // 去除前后空格
+		Value:    commentContent,
 		Position: pos,
 	}
 }

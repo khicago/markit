@@ -59,13 +59,15 @@
 				
 				<option value="file1">github.com/khicago/markit/core_protocol.go (100.0%)</option>
 				
-				<option value="file2">github.com/khicago/markit/lexer.go (100.0%)</option>
+				<option value="file2">github.com/khicago/markit/html_config.go (100.0%)</option>
 				
-				<option value="file3">github.com/khicago/markit/parser.go (96.1%)</option>
+				<option value="file3">github.com/khicago/markit/lexer.go (99.4%)</option>
 				
-				<option value="file4">github.com/khicago/markit/protocol.go (100.0%)</option>
+				<option value="file4">github.com/khicago/markit/parser.go (100.0%)</option>
 				
-				<option value="file5">github.com/khicago/markit/token.go (100.0%)</option>
+				<option value="file5">github.com/khicago/markit/protocol.go (100.0%)</option>
+				
+				<option value="file6">github.com/khicago/markit/token.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -326,6 +328,37 @@ func (cpm *CoreProtocolMatcher) MatchProtocol(input string, pos int) *CoreProtoc
 		<pre class="file" id="file2" style="display: none">package markit
 
 import (
+        "github.com/khicago/markit/plugins"
+)
+
+// HTMLConfig 创建适用于 HTML 的配置
+// 使用HTML插件提供的功能来配置解析器
+func HTMLConfig() *ParserConfig <span class="cov8" title="1">{
+        htmlPlugin := plugins.NewHTMLPlugin()
+
+        config := &amp;ParserConfig{
+                CaseSensitive:      false,                    // HTML不区分大小写
+                CoreMatcher:        NewCoreProtocolMatcher(), // 必须设置核心协议匹配器
+                AttributeProcessor: plugins.NewHTMLAttributeProcessor(),
+                TrimWhitespace:     true,
+                SkipComments:       false,
+                AllowEmptyElements: true,
+                AllowSelfCloseTags: true,
+                VoidElements:       htmlPlugin.GetHTML5VoidElementsMap(),
+        }
+
+        return config
+}</span>
+
+// DefaultHTMLConfig HTMLConfig的别名，提供更明确的命名
+func DefaultHTMLConfig() *ParserConfig <span class="cov8" title="1">{
+        return HTMLConfig()
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package markit
+
+import (
         "fmt"
         "strings"
         "unicode"
@@ -371,9 +404,12 @@ func (l *Lexer) GetConfig() *ParserConfig <span class="cov8" title="1">{
 
 // NextToken 获取下一个 token
 func (l *Lexer) NextToken() Token <span class="cov8" title="1">{
-        l.skipWhitespace()
+        // 只有在 TrimWhitespace 为 true 时才跳过空白字符
+        if l.config != nil &amp;&amp; l.config.TrimWhitespace </span><span class="cov8" title="1">{
+                l.skipWhitespace()
+        }</span>
 
-        pos := Position{
+        <span class="cov8" title="1">pos := Position{
                 Line:   l.line,
                 Column: l.column,
                 Offset: l.position,
@@ -444,9 +480,18 @@ func (l *Lexer) readText(pos Position) Token <span class="cov8" title="1">{
                 l.readChar()
         }</span>
 
-        <span class="cov8" title="1">content := strings.TrimSpace(text.String())
+        <span class="cov8" title="1">content := text.String()
+        
+        // 根据配置决定是否修剪空白字符
+        if l.config != nil &amp;&amp; l.config.TrimWhitespace </span><span class="cov8" title="1">{
+                content = strings.TrimSpace(content)
+                // 如果修剪后内容为空，跳过这个token
+                if content == "" </span><span class="cov0" title="0">{
+                        return l.NextToken() // 递归获取下一个token
+                }</span>
+        }
 
-        return Token{
+        <span class="cov8" title="1">return Token{
                 Type:     TokenText,
                 Value:    content,
                 Position: pos,
@@ -574,9 +619,16 @@ func (l *Lexer) readComment(pos Position) Token <span class="cov8" title="1">{
                 }</span>
         }
 
+        <span class="cov8" title="1">commentContent := comment.String()
+        
+        // 根据配置决定是否修剪空白字符
+        if l.config != nil &amp;&amp; l.config.TrimWhitespace </span><span class="cov8" title="1">{
+                commentContent = strings.TrimSpace(commentContent)
+        }</span>
+
         <span class="cov8" title="1">return Token{
                 Type:     TokenComment,
-                Value:    strings.TrimSpace(comment.String()), // 去除前后空格
+                Value:    commentContent,
                 Position: pos,
         }</span>
 }
@@ -698,7 +750,7 @@ func (l *Lexer) readTag(pos Position) Token <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package markit
+		<pre class="file" id="file4" style="display: none">package markit
 
 import (
         "fmt"
@@ -796,11 +848,11 @@ func (p *Parser) parseNode() (Node, error) <span class="cov8" title="1">{
                 return p.parseElement()</span>
         case TokenSelfCloseTag:<span class="cov8" title="1">
                 return p.parseSelfCloseElement()</span>
-        case TokenProcessingInstruction:<span class="cov0" title="0">
+        case TokenProcessingInstruction:<span class="cov8" title="1">
                 return p.parseProcessingInstruction()</span>
-        case TokenDoctype:<span class="cov0" title="0">
+        case TokenDoctype:<span class="cov8" title="1">
                 return p.parseDoctype()</span>
-        case TokenCDATA:<span class="cov0" title="0">
+        case TokenCDATA:<span class="cov8" title="1">
                 return p.parseCDATA()</span>
         case TokenComment:<span class="cov8" title="1">
                 return p.parseComment()</span>
@@ -839,7 +891,7 @@ func (p *Parser) parseText() (Node, error) <span class="cov8" title="1">{
 
 // parseElement 解析元素节点
 func (p *Parser) parseElement() (Node, error) <span class="cov8" title="1">{
-        if p.current.Type != TokenOpenTag </span><span class="cov0" title="0">{
+        if p.current.Type != TokenOpenTag </span><span class="cov8" title="1">{
                 return nil, &amp;ParseError{
                         Position: p.current.Position,
                         Message:  fmt.Sprintf("expected open tag, got %s", p.current.Type),
@@ -857,8 +909,15 @@ func (p *Parser) parseElement() (Node, error) <span class="cov8" title="1">{
         tagName := p.current.Value
         p.nextToken()
 
+        // 检查是否是 void element
+        if p.config != nil &amp;&amp; p.config.IsVoidElement(tagName) </span><span class="cov8" title="1">{
+                // void element 不需要结束标签，直接返回自闭合元素
+                element.SelfClose = true
+                return element, nil
+        }</span>
+
         // 解析子节点
-        for p.current.Type != TokenCloseTag &amp;&amp; p.current.Type != TokenEOF </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">for p.current.Type != TokenCloseTag &amp;&amp; p.current.Type != TokenEOF </span><span class="cov8" title="1">{
                 child, err := p.parseNode()
                 if err != nil </span><span class="cov8" title="1">{
                         return nil, err
@@ -1014,7 +1073,7 @@ type Visitor interface {
 func Walk(node Node, visitor Visitor) error <span class="cov8" title="1">{
         switch n := node.(type) </span>{
         case *Document:<span class="cov8" title="1">
-                if err := visitor.VisitDocument(n); err != nil </span><span class="cov0" title="0">{
+                if err := visitor.VisitDocument(n); err != nil </span><span class="cov8" title="1">{
                         return err
                 }</span>
                 <span class="cov8" title="1">for _, child := range n.Children </span><span class="cov8" title="1">{
@@ -1093,7 +1152,7 @@ func prettyPrintNode(node Node, sb *strings.Builder, indent int) <span class="co
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package markit
+		<pre class="file" id="file5" style="display: none">package markit
 
 import (
         "strings"
@@ -1115,6 +1174,9 @@ type ParserConfig struct {
         SkipComments       bool
         AllowEmptyElements bool
         AllowSelfCloseTags bool // 是否允许自封闭标签
+
+        // Void Elements 配置
+        VoidElements map[string]bool // 定义哪些标签是 void element（如 HTML 的 br, hr, img 等）
 }
 
 // DefaultConfig 创建默认配置
@@ -1126,11 +1188,50 @@ func DefaultConfig() *ParserConfig <span class="cov8" title="1">{
                 TrimWhitespace:     true,
                 SkipComments:       false,
                 AllowEmptyElements: true,
-                AllowSelfCloseTags: true, // 默认允许自封闭标签
+                AllowSelfCloseTags: true,                  // 默认允许自封闭标签
+                VoidElements:       make(map[string]bool), // 默认不定义任何 void element
         }
 
         return config
 }</span>
+
+// IsVoidElement 检查指定标签是否是 void element
+func (config *ParserConfig) IsVoidElement(tagName string) bool <span class="cov8" title="1">{
+        if config.VoidElements == nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        // 根据大小写敏感性配置进行标准化
+        <span class="cov8" title="1">normalizedTagName := config.NormalizeCase(tagName)
+        return config.VoidElements[normalizedTagName]</span>
+}
+
+// AddVoidElement 添加 void element
+func (config *ParserConfig) AddVoidElement(tagName string) <span class="cov8" title="1">{
+        if config.VoidElements == nil </span><span class="cov8" title="1">{
+                config.VoidElements = make(map[string]bool)
+        }</span>
+        <span class="cov8" title="1">normalizedTagName := config.NormalizeCase(tagName)
+        config.VoidElements[normalizedTagName] = true</span>
+}
+
+// RemoveVoidElement 移除 void element
+func (config *ParserConfig) RemoveVoidElement(tagName string) <span class="cov8" title="1">{
+        if config.VoidElements == nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">normalizedTagName := config.NormalizeCase(tagName)
+        delete(config.VoidElements, normalizedTagName)</span>
+}
+
+// SetVoidElements 设置完整的 void elements 列表
+func (config *ParserConfig) SetVoidElements(elements []string) <span class="cov8" title="1">{
+        config.VoidElements = make(map[string]bool)
+        for _, element := range elements </span><span class="cov8" title="1">{
+                normalizedElement := config.NormalizeCase(element)
+                config.VoidElements[normalizedElement] = true
+        }</span>
+}
 
 // NormalizeCase 根据配置标准化大小写
 func (config *ParserConfig) NormalizeCase(s string) string <span class="cov8" title="1">{
@@ -1141,7 +1242,7 @@ func (config *ParserConfig) NormalizeCase(s string) string <span class="cov8" ti
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package markit
+		<pre class="file" id="file6" style="display: none">package markit
 
 import "fmt"
 

@@ -409,6 +409,194 @@ func TestParserWhitespaceHandling(t *testing.T) {
 	}
 }
 
+// TestTrimWhitespaceConfiguration 测试 TrimWhitespace 配置功能
+func TestTrimWhitespaceConfiguration(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		trimWhitespace bool
+		checkFunc      func(*testing.T, *Document)
+	}{
+		{
+			name:           "TrimWhitespace enabled - basic text",
+			input:          "<root>  hello world  </root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				if text.Content != "hello world" {
+					t.Errorf("expected 'hello world', got %q", text.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace disabled - preserve whitespace",
+			input:          "<root>  hello world  </root>",
+			trimWhitespace: false,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				if text.Content != "  hello world  " {
+					t.Errorf("expected '  hello world  ', got %q", text.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace enabled - multiline text",
+			input:          "<root>\n  hello\n  world\n</root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				expected := "hello\n  world"
+				if text.Content != expected {
+					t.Errorf("expected %q, got %q", expected, text.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace disabled - preserve multiline whitespace",
+			input:          "<root>\n  hello\n  world\n</root>",
+			trimWhitespace: false,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				expected := "\n  hello\n  world\n"
+				if text.Content != expected {
+					t.Errorf("expected %q, got %q", expected, text.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace enabled - comment trimming",
+			input:          "<root><!-- \n  comment content  \n --></root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				comment := root.Children[0].(*Comment)
+				if comment.Content != "comment content" {
+					t.Errorf("expected 'comment content', got %q", comment.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace disabled - preserve comment whitespace",
+			input:          "<root><!-- \n  comment content  \n --></root>",
+			trimWhitespace: false,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				comment := root.Children[0].(*Comment)
+				expected := " \n  comment content  \n "
+				if comment.Content != expected {
+					t.Errorf("expected %q, got %q", expected, comment.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace enabled - empty text handling",
+			input:          "<root>   </root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				// 当 TrimWhitespace 为 true 时，空白文本应该被跳过
+				if len(root.Children) != 0 {
+					t.Errorf("expected 0 children (empty text should be skipped), got %d", len(root.Children))
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace disabled - preserve empty text",
+			input:          "<root>   </root>",
+			trimWhitespace: false,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				if text.Content != "   " {
+					t.Errorf("expected '   ', got %q", text.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace enabled - mixed content",
+			input:          "<root>  text  <!-- comment -->  more text  </root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 3 {
+					t.Fatalf("expected 3 children, got %d", len(root.Children))
+				}
+				
+				text1 := root.Children[0].(*Text)
+				if text1.Content != "text" {
+					t.Errorf("expected 'text', got %q", text1.Content)
+				}
+				
+				comment := root.Children[1].(*Comment)
+				if comment.Content != "comment" {
+					t.Errorf("expected 'comment', got %q", comment.Content)
+				}
+				
+				text2 := root.Children[2].(*Text)
+				if text2.Content != "more text" {
+					t.Errorf("expected 'more text', got %q", text2.Content)
+				}
+			},
+		},
+		{
+			name:           "TrimWhitespace enabled - special whitespace characters",
+			input:          "<root>\t\n\r  content  \t\n\r</root>",
+			trimWhitespace: true,
+			checkFunc: func(t *testing.T, doc *Document) {
+				root := doc.Children[0].(*Element)
+				if len(root.Children) != 1 {
+					t.Fatalf("expected 1 child, got %d", len(root.Children))
+				}
+				text := root.Children[0].(*Text)
+				if text.Content != "content" {
+					t.Errorf("expected 'content', got %q", text.Content)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := DefaultConfig()
+			config.TrimWhitespace = tt.trimWhitespace
+			
+			parser := NewParserWithConfig(tt.input, config)
+			doc, err := parser.Parse()
+
+			if err != nil {
+				t.Fatalf("parse error: %v", err)
+			}
+
+			tt.checkFunc(t, doc)
+		})
+	}
+}
+
 // TestParserAttributeProcessor 测试属性处理器
 func TestParserAttributeProcessor(t *testing.T) {
 	// 创建自定义属性处理器
