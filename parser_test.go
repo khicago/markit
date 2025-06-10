@@ -546,17 +546,17 @@ func TestTrimWhitespaceConfiguration(t *testing.T) {
 				if len(root.Children) != 3 {
 					t.Fatalf("expected 3 children, got %d", len(root.Children))
 				}
-				
+
 				text1 := root.Children[0].(*Text)
 				if text1.Content != "text" {
 					t.Errorf("expected 'text', got %q", text1.Content)
 				}
-				
+
 				comment := root.Children[1].(*Comment)
 				if comment.Content != "comment" {
 					t.Errorf("expected 'comment', got %q", comment.Content)
 				}
-				
+
 				text2 := root.Children[2].(*Text)
 				if text2.Content != "more text" {
 					t.Errorf("expected 'more text', got %q", text2.Content)
@@ -584,7 +584,7 @@ func TestTrimWhitespaceConfiguration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			config := DefaultConfig()
 			config.TrimWhitespace = tt.trimWhitespace
-			
+
 			parser := NewParserWithConfig(tt.input, config)
 			doc, err := parser.Parse()
 

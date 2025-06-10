@@ -26,5 +26,5 @@ go.work.sum
 logs
 .DS_Store
 
-coverage.out
-coverage.html
+*coverage.out
+*coverage.html

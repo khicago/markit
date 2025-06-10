@@ -7,25 +7,25 @@ import (
 // TestDefaultHTMLConfig 测试 DefaultHTMLConfig 函数
 func TestDefaultHTMLConfig(t *testing.T) {
 	config := DefaultHTMLConfig()
-	
+
 	if config == nil {
 		t.Fatal("DefaultHTMLConfig should not return nil")
 	}
-	
+
 	// 验证HTML配置的基本属性
 	if config.CaseSensitive {
 		t.Error("HTML config should be case insensitive")
 	}
-	
+
 	if !config.TrimWhitespace {
 		t.Error("HTML config should trim whitespace")
 	}
-	
+
 	// 验证void elements是否正确设置
 	if !config.IsVoidElement("br") {
 		t.Error("br should be a void element in HTML config")
 	}
-	
+
 	if !config.IsVoidElement("img") {
 		t.Error("img should be a void element in HTML config")
 	}
@@ -90,7 +90,7 @@ func TestReadTextRecursiveCall(t *testing.T) {
 			config := DefaultConfig()
 			config.TrimWhitespace = true
 			lexer := NewLexerWithConfig(tt.input, config)
-			
+
 			var tokens []Token
 			for {
 				token := lexer.NextToken()
@@ -240,7 +240,7 @@ func TestEmptyTextHandlingEdgeCases(t *testing.T) {
 			config := DefaultConfig()
 			config.TrimWhitespace = true
 			lexer := NewLexerWithConfig(tt.input, config)
-			
+
 			var tokenTypes []TokenType
 			for {
 				token := lexer.NextToken()
@@ -295,7 +295,7 @@ func TestReadTextComplexRecursion(t *testing.T) {
 			config := DefaultConfig()
 			config.TrimWhitespace = true
 			lexer := NewLexerWithConfig(tt.input, config)
-			
+
 			var tokenTypes []TokenType
 			for {
 				token := lexer.NextToken()
@@ -380,15 +380,15 @@ func TestReadTextWithNilConfig(t *testing.T) {
 	// 所以我们创建一个配置，但不启用 TrimWhitespace
 	config := DefaultConfig()
 	config.TrimWhitespace = false
-	
+
 	lexer := NewLexerWithConfig("some text content", config)
-	
+
 	token := lexer.NextToken()
-	
+
 	if token.Type != TokenText {
 		t.Errorf("Expected TokenText, got %v", token.Type)
 	}
-	
+
 	if token.Value != "some text content" {
 		t.Errorf("Expected 'some text content', got '%s'", token.Value)
 	}
@@ -398,15 +398,15 @@ func TestReadTextConfigNilWithWhitespace(t *testing.T) {
 	// 测试当 TrimWhitespace 为 false 时，空白字符不会被修剪
 	config := DefaultConfig()
 	config.TrimWhitespace = false
-	
+
 	lexer := NewLexerWithConfig("  whitespace text  ", config)
-	
+
 	token := lexer.NextToken()
-	
+
 	if token.Type != TokenText {
 		t.Errorf("Expected TokenText, got %v", token.Type)
 	}
-	
+
 	// 当 TrimWhitespace 为 false 时，空白字符应该保留
 	if token.Value != "  whitespace text  " {
 		t.Errorf("Expected '  whitespace text  ', got '%s'", token.Value)
@@ -451,17 +451,17 @@ func TestReadTextTrimWhitespaceDisabled(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			config := DefaultConfig()
 			config.TrimWhitespace = false
-			
+
 			lexer := NewLexerWithConfig(tc.input, config)
 			token := lexer.NextToken()
-			
+
 			if token.Type != TokenText {
 				t.Errorf("Expected TokenText, got %v", token.Type)
 			}
-			
+
 			if token.Value != tc.expected {
 				t.Errorf("Expected '%s', got '%s'", tc.expected, token.Value)
 			}
 		})
 	}
-} 
+}

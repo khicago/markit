@@ -123,7 +123,7 @@ func (l *Lexer) readText(pos Position) Token {
 	}
 
 	content := text.String()
-	
+
 	// 根据配置决定是否修剪空白字符
 	if l.config != nil && l.config.TrimWhitespace {
 		content = strings.TrimSpace(content)
@@ -262,7 +262,7 @@ func (l *Lexer) readComment(pos Position) Token {
 	}
 
 	commentContent := comment.String()
-	
+
 	// 根据配置决定是否修剪空白字符
 	if l.config != nil && l.config.TrimWhitespace {
 		commentContent = strings.TrimSpace(commentContent)
