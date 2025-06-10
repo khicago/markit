@@ -2,6 +2,7 @@ package markit
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -354,35 +355,80 @@ func Walk(node Node, visitor Visitor) error {
 
 // PrettyPrint 美化打印 AST
 func PrettyPrint(node Node) string {
+	debugRenderer := NewDebugRenderer()
+	return debugRenderer.RenderDebug(node)
+}
+
+// DebugRenderer 调试渲染器，专门用于AST结构展示
+type DebugRenderer struct {
+	*Renderer
+}
+
+// NewDebugRenderer 创建调试渲染器
+func NewDebugRenderer() *DebugRenderer {
+	opts := &RenderOptions{
+		Indent:         "  ",
+		EscapeText:     false, // 调试时不转义，显示原始内容
+		CompactMode:    false,
+		SortAttributes: true, // 调试时排序属性，保证输出一致性
+	}
+	
+	return &DebugRenderer{
+		Renderer: NewRendererWithOptions(opts),
+	}
+}
+
+// RenderDebug 渲染调试信息
+func (dr *DebugRenderer) RenderDebug(node Node) string {
 	var sb strings.Builder
-	prettyPrintNode(node, &sb, 0)
+	dr.renderDebugNode(node, &sb, 0)
 	return sb.String()
 }
 
-func prettyPrintNode(node Node, sb *strings.Builder, indent int) {
-	indentStr := strings.Repeat("  ", indent)
+// renderDebugNode 渲染调试节点，复用Renderer的基础设施
+func (dr *DebugRenderer) renderDebugNode(node Node, sb *strings.Builder, depth int) {
+	if node == nil {
+		return
+	}
+
+	indentStr := strings.Repeat(dr.options.Indent, depth)
 
 	switch n := node.(type) {
 	case *Document:
 		sb.WriteString(fmt.Sprintf("%sDocument\n", indentStr))
 		for _, child := range n.Children {
-			prettyPrintNode(child, sb, indent+1)
+			dr.renderDebugNode(child, sb, depth+1)
 		}
 	case *Element:
 		sb.WriteString(fmt.Sprintf("%s<%s", indentStr, n.TagName))
-		for key, value := range n.Attributes {
-			if value == "" {
-				sb.WriteString(fmt.Sprintf(" %s", key))
-			} else {
-				sb.WriteString(fmt.Sprintf(" %s=%q", key, value))
+		
+		// 复用Renderer的属性处理逻辑
+		if len(n.Attributes) > 0 {
+			// 获取排序后的属性键
+			keys := make([]string, 0, len(n.Attributes))
+			for key := range n.Attributes {
+				keys = append(keys, key)
+			}
+			if dr.options.SortAttributes {
+				sort.Strings(keys)
+			}
+			
+			for _, key := range keys {
+				value := n.Attributes[key]
+				if value == "" {
+					sb.WriteString(fmt.Sprintf(" %s", key))
+				} else {
+					sb.WriteString(fmt.Sprintf(" %s=%q", key, value))
+				}
 			}
 		}
+		
 		if n.SelfClose {
 			sb.WriteString(" />\n")
 		} else {
 			sb.WriteString(">\n")
 			for _, child := range n.Children {
-				prettyPrintNode(child, sb, indent+1)
+				dr.renderDebugNode(child, sb, depth+1)
 			}
 			sb.WriteString(fmt.Sprintf("%s</%s>\n", indentStr, n.TagName))
 		}
