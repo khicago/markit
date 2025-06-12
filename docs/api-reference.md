@@ -16,6 +16,7 @@ This document provides comprehensive API documentation for the MarkIt parser lib
 
 - [Core Types](#core-types)
 - [Parser](#parser)
+- [Renderer](#renderer)
 - [Configuration](#configuration)
 - [AST Nodes](#ast-nodes)
 - [Traversal](#traversal)
@@ -143,6 +144,429 @@ Converts the document to HTML format.
 
 ```go
 htmlContent := doc.ToHTML()
+```
+
+## Renderer
+
+The renderer system provides powerful and flexible markup generation from AST nodes.
+
+### Renderer
+
+The main renderer type for converting AST back to markup.
+
+```go
+type Renderer struct {
+    // Private fields
+}
+```
+
+#### Constructor Functions
+
+##### `NewRenderer() *Renderer`
+
+Creates a new renderer with default options.
+
+```go
+renderer := markit.NewRenderer()
+```
+
+**Returns:**
+- `*Renderer`: A new renderer instance with default settings
+
+##### `NewRendererWithOptions(opts *RenderOptions) *Renderer`
+
+Creates a new renderer with custom options.
+
+```go
+opts := &markit.RenderOptions{
+    Indent:         "    ", // 4 spaces
+    CompactMode:    false,
+    SortAttributes: true,
+}
+renderer := markit.NewRendererWithOptions(opts)
+```
+
+**Parameters:**
+- `opts` (*RenderOptions): Rendering options
+
+**Returns:**
+- `*Renderer`: A new renderer instance
+
+##### `NewRendererWithConfig(config *ParserConfig, opts *RenderOptions) *Renderer`
+
+Creates a new renderer with parser configuration and render options.
+
+```go
+config := markit.HTMLConfig()
+opts := &markit.RenderOptions{CompactMode: true}
+renderer := markit.NewRendererWithConfig(config, opts)
+```
+
+**Parameters:**
+- `config` (*ParserConfig): Parser configuration for context
+- `opts` (*RenderOptions): Rendering options
+
+**Returns:**
+- `*Renderer`: A new renderer instance
+
+#### Methods
+
+##### `Render(doc *Document) string`
+
+Renders a document to string (backward compatible).
+
+```go
+output := renderer.Render(doc)
+```
+
+**Parameters:**
+- `doc` (*Document): Document to render
+
+**Returns:**
+- `string`: Rendered markup
+
+##### `RenderToString(doc *Document) (string, error)`
+
+Renders a document to string with error handling.
+
+```go
+output, err := renderer.RenderToString(doc)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+**Parameters:**
+- `doc` (*Document): Document to render
+
+**Returns:**
+- `string`: Rendered markup
+- `error`: Rendering error if any
+
+##### `RenderToWriter(doc *Document, w io.Writer) error`
+
+Renders a document to an io.Writer for streaming.
+
+```go
+var buf bytes.Buffer
+err := renderer.RenderToWriter(doc, &buf)
+```
+
+**Parameters:**
+- `doc` (*Document): Document to render
+- `w` (io.Writer): Writer to output to
+
+**Returns:**
+- `error`: Rendering error if any
+
+##### `RenderElement(elem *Element) (string, error)`
+
+Renders a single element to string.
+
+```go
+output, err := renderer.RenderElement(element)
+```
+
+**Parameters:**
+- `elem` (*Element): Element to render
+
+**Returns:**
+- `string`: Rendered element markup
+- `error`: Rendering error if any
+
+##### `RenderElementToWriter(elem *Element, w io.Writer) error`
+
+Renders a single element to an io.Writer.
+
+```go
+err := renderer.RenderElementToWriter(element, os.Stdout)
+```
+
+**Parameters:**
+- `elem` (*Element): Element to render
+- `w` (io.Writer): Writer to output to
+
+**Returns:**
+- `error`: Rendering error if any
+
+##### `RenderWithValidation(doc *Document, opts *ValidationOptions) (string, error)`
+
+Renders a document with validation.
+
+```go
+validationOpts := &markit.ValidationOptions{
+    CheckWellFormed: true,
+    CheckEncoding:   true,
+}
+output, err := renderer.RenderWithValidation(doc, validationOpts)
+```
+
+**Parameters:**
+- `doc` (*Document): Document to render
+- `opts` (*ValidationOptions): Validation options
+
+**Returns:**
+- `string`: Rendered markup
+- `error`: Rendering or validation error
+
+##### `SetOptions(opts *RenderOptions)`
+
+Updates renderer options.
+
+```go
+newOpts := &markit.RenderOptions{
+    Indent:      "\t",
+    CompactMode: true,
+}
+renderer.SetOptions(newOpts)
+```
+
+**Parameters:**
+- `opts` (*RenderOptions): New rendering options
+
+##### `SetConfig(config *ParserConfig)`
+
+Sets parser configuration for context.
+
+```go
+renderer.SetConfig(markit.HTMLConfig())
+```
+
+**Parameters:**
+- `config` (*ParserConfig): Parser configuration
+
+##### `SetValidation(validation *ValidationOptions)`
+
+Sets validation options.
+
+```go
+validation := &markit.ValidationOptions{
+    CheckWellFormed: true,
+    CheckEncoding:   true,
+    CheckNesting:    true,
+}
+renderer.SetValidation(validation)
+```
+
+**Parameters:**
+- `validation` (*ValidationOptions): Validation options
+
+### RenderOptions
+
+Configuration for rendering behavior.
+
+```go
+type RenderOptions struct {
+    Indent             string
+    EscapeText         bool
+    PreserveSpace      bool
+    CompactMode        bool
+    SortAttributes     bool
+    EmptyElementStyle  EmptyElementStyle
+    IncludeDeclaration bool
+}
+```
+
+#### Fields
+
+- `Indent` (string): Indentation string (e.g., "  ", "\t")
+- `EscapeText` (bool): Whether to escape text content (default: true)
+- `PreserveSpace` (bool): Whether to preserve whitespace
+- `CompactMode` (bool): Compact output for small elements
+- `SortAttributes` (bool): Sort attributes alphabetically
+- `EmptyElementStyle` (EmptyElementStyle): Style for empty elements
+- `IncludeDeclaration` (bool): Include XML/DOCTYPE declarations
+
+#### Example Usage
+
+```go
+opts := &markit.RenderOptions{
+    Indent:             "    ",     // 4-space indentation
+    EscapeText:         true,       // Escape HTML entities
+    CompactMode:        false,      // Pretty-printed output
+    SortAttributes:     true,       // Consistent attribute order
+    EmptyElementStyle:  markit.SelfClosingStyle,
+    IncludeDeclaration: true,       // Include <?xml?> declarations
+}
+```
+
+### EmptyElementStyle
+
+Enumeration for empty element rendering styles.
+
+```go
+type EmptyElementStyle int
+
+const (
+    SelfClosingStyle EmptyElementStyle = iota  // <br/>
+    PairedTagStyle                             // <br></br>
+    VoidElementStyle                           // <br>
+)
+```
+
+### ValidationOptions
+
+Options for document validation during rendering.
+
+```go
+type ValidationOptions struct {
+    CheckWellFormed bool
+    CheckEncoding   bool
+    CheckNesting    bool
+}
+```
+
+#### Fields
+
+- `CheckWellFormed` (bool): Validate XML well-formedness
+- `CheckEncoding` (bool): Validate character encoding
+- `CheckNesting` (bool): Check element nesting rules
+
+### DebugRenderer
+
+Specialized renderer for AST debugging and development.
+
+```go
+type DebugRenderer struct {
+    *Renderer
+}
+```
+
+#### Constructor Functions
+
+##### `NewDebugRenderer() *DebugRenderer`
+
+Creates a debug renderer optimized for AST visualization.
+
+```go
+debugRenderer := markit.NewDebugRenderer()
+```
+
+**Returns:**
+- `*DebugRenderer`: A new debug renderer instance
+
+#### Methods
+
+##### `RenderDebug(node Node) string`
+
+Renders a node with debug information showing AST structure.
+
+```go
+debugOutput := debugRenderer.RenderDebug(element)
+fmt.Println(debugOutput)
+// Output:
+// Document
+//   <root class="container" id="main">
+//     Text: "Hello World"
+//     <img alt="" src="image.png" />
+//   </root>
+```
+
+**Parameters:**
+- `node` (Node): AST node to render
+
+**Returns:**
+- `string`: Debug representation of the AST
+
+### PrettyPrint Function
+
+Utility function for quick AST debugging.
+
+##### `PrettyPrint(node Node) string`
+
+Pretty-prints an AST node for debugging purposes.
+
+```go
+output := markit.PrettyPrint(document)
+fmt.Println(output)
+```
+
+**Parameters:**
+- `node` (Node): AST node to print
+
+**Returns:**
+- `string`: Pretty-printed representation
+
+**Note:** This function now uses the `DebugRenderer` internally for consistent output.
+
+### Rendering Examples
+
+#### Basic Document Rendering
+
+```go
+// Parse document
+parser := markit.NewParser(`<root><item>Hello</item></root>`)
+doc, _ := parser.Parse()
+
+// Render with default options
+renderer := markit.NewRenderer()
+output := renderer.Render(doc)
+fmt.Println(output)
+// Output: <root><item>Hello</item></root>
+```
+
+#### Pretty-Printed Output
+
+```go
+// Render with indentation
+opts := &markit.RenderOptions{
+    Indent:      "  ",
+    CompactMode: false,
+}
+renderer := markit.NewRendererWithOptions(opts)
+output, _ := renderer.RenderToString(doc)
+fmt.Println(output)
+// Output:
+// <root>
+//   <item>Hello</item>
+// </root>
+```
+
+#### HTML5 Rendering
+
+```go
+// HTML5 configuration
+config := markit.HTMLConfig()
+opts := &markit.RenderOptions{
+    EmptyElementStyle: markit.VoidElementStyle,
+    SortAttributes:    true,
+}
+renderer := markit.NewRendererWithConfig(config, opts)
+
+// Render HTML document
+htmlDoc := parseHTML(`<div><br><img src="test.jpg" alt="Test"></div>`)
+output, _ := renderer.RenderToString(htmlDoc)
+fmt.Println(output)
+// Output: <div><br><img alt="Test" src="test.jpg"></div>
+```
+
+#### Streaming Rendering
+
+```go
+// Render to file
+file, _ := os.Create("output.xml")
+defer file.Close()
+
+renderer := markit.NewRenderer()
+err := renderer.RenderToWriter(doc, file)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+#### Validation During Rendering
+
+```go
+validation := &markit.ValidationOptions{
+    CheckWellFormed: true,
+    CheckEncoding:   true,
+}
+
+renderer := markit.NewRenderer()
+output, err := renderer.RenderWithValidation(doc, validation)
+if err != nil {
+    log.Printf("Validation error: %v", err)
+}
 ```
 
 ## Configuration
@@ -842,6 +1266,8 @@ type ParseError struct {
     Line     int
     Column   int
     Position int
+    Code     string    // Error code for programmatic handling
+    Context  string    // Context around the error
 }
 ```
 
@@ -851,6 +1277,8 @@ type ParseError struct {
 - `Line` (int): Line number where error occurred
 - `Column` (int): Column number where error occurred
 - `Position` (int): Character position where error occurred
+- `Code` (string): Error code for programmatic handling
+- `Context` (string): Context around the error location
 
 #### Methods
 
@@ -859,7 +1287,10 @@ type ParseError struct {
 Returns the error message.
 
 ```go
-fmt.Println(err.Error())
+if err != nil {
+    fmt.Println(err.Error())
+    return nil, fmt.Errorf("failed to parse markup: %w", err)
+}
 ```
 
 **Returns:**
@@ -870,7 +1301,10 @@ fmt.Println(err.Error())
 Returns detailed error information.
 
 ```go
-fmt.Println(parseErr.String())
+if parseErr, ok := err.(*ParseError); ok {
+    fmt.Println(parseErr.String())
+    fmt.Printf("Error at line %d, column %d: %s\n", parseErr.Line, parseErr.Column, parseErr.Message)
+}
 ```
 
 **Returns:**
@@ -878,36 +1312,89 @@ fmt.Println(parseErr.String())
 
 ### Error Types
 
-#### `ErrInvalidSyntax`
-
-Returned when markup syntax is invalid.
+MarkIt uses error constants to allow for consistent, type-safe error handling:
 
 ```go
-var ErrInvalidSyntax = errors.New("invalid markup syntax")
+var (
+    ErrInvalidSyntax     = errors.New("invalid markup syntax")
+    ErrUnexpectedEOF     = errors.New("unexpected end of input")
+    ErrInvalidCharacter  = errors.New("invalid character")
+    ErrMaxDepthExceeded  = errors.New("maximum nesting depth exceeded")
+    ErrMissingEndTag     = errors.New("missing end tag")
+    ErrUnexpectedTag     = errors.New("unexpected tag")
+    ErrInvalidAttribute  = errors.New("invalid attribute format")
+    ErrDuplicateAttribute = errors.New("duplicate attribute name")
+)
 ```
 
-#### `ErrUnexpectedEOF`
+### Best Practices for Error Handling
 
-Returned when input ends unexpectedly.
+When working with MarkIt, follow these error handling guidelines:
+
+#### 1. Always check error returns
 
 ```go
-var ErrUnexpectedEOF = errors.New("unexpected end of input")
+doc, err := parser.Parse()
+if err != nil {
+    // Handle the error - don't ignore it
+    return nil, fmt.Errorf("parse failed: %w", err)
+}
 ```
 
-#### `ErrInvalidCharacter`
-
-Returned when an invalid character is encountered.
+#### 2. Use type assertions to access error details
 
 ```go
-var ErrInvalidCharacter = errors.New("invalid character")
+if err != nil {
+    switch {
+    case errors.Is(err, ErrMaxDepthExceeded):
+        // Handle depth issues
+        log.Warn("Document structure too deep, consider simplifying")
+    case errors.Is(err, ErrInvalidSyntax):
+        // Handle syntax errors
+        log.Error("Invalid markup syntax")
+    default:
+        // Handle other errors
+        log.Error("Unexpected error during parsing")
+    }
+    
+    // Extract details when possible
+    var parseErr *ParseError
+    if errors.As(err, &parseErr) {
+        log.Errorf("Error at line %d, column %d: %s", 
+            parseErr.Line, parseErr.Column, parseErr.Message)
+    }
+    
+    return nil, err
+}
 ```
 
-#### `ErrMaxDepthExceeded`
-
-Returned when maximum nesting depth is exceeded.
+#### 3. Use wrapping for context
 
 ```go
-var ErrMaxDepthExceeded = errors.New("maximum nesting depth exceeded")
+doc, err := parser.Parse()
+if err != nil {
+    return nil, fmt.Errorf("failed to parse %s document: %w", docType, err)
+}
+```
+
+#### 4. For recoverable errors, consider fallback strategies
+
+```go
+doc, err := parser.Parse()
+if err != nil {
+    if errors.Is(err, ErrInvalidAttribute) {
+        // Try with lenient config as fallback
+        lenientConfig := markit.HTMLConfig().WithLenientMode(true)
+        parser = markit.NewParserWithConfig(content, lenientConfig)
+        doc, err = parser.Parse()
+        if err != nil {
+            return nil, fmt.Errorf("parsing failed even with lenient mode: %w", err)
+        }
+        log.Warn("Document parsed in lenient mode, some attributes may have been ignored")
+        return doc, nil
+    }
+    return nil, err
+}
 ```
 
 ## Utilities

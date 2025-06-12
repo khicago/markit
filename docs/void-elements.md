@@ -2,17 +2,17 @@
 layout: default
 title: "Void Elements - HTML5 Self-Closing Tags"
 description: "Complete guide to MarkIt's void elements support - HTML5 standard void elements, custom configurations, and XML compatibility."
-keywords: "void elements, html5, self-closing tags, xml, go parser, markit, llm, ai"
+keywords: "void elements, html5, self-closing tags, xml, go parser, markit"
 author: "Khicago Team"
 ---
 
 # Void Elements Support
 
-> **Complete support for HTML5 void elements and custom configurations**
+Complete support for HTML5 void elements and custom configurations.
 
 MarkIt provides comprehensive support for void elements - HTML tags that don't have closing tags and can't contain content. This feature enables seamless parsing of HTML5 documents while maintaining full XML compatibility.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [What are Void Elements?](#what-are-void-elements)
 - [HTML5 Standard Support](#html5-standard-support)
@@ -72,7 +72,10 @@ MarkIt includes built-in support for all HTML5 standard void elements:
 ```go
 package main
 
-import "github.com/khicago/markit"
+import (
+    "fmt"
+    "github.com/khicago/markit"
+)
 
 func main() {
     // Use HTML configuration for built-in void elements
@@ -96,7 +99,10 @@ fmt.Printf("Supports void elements: %v", config.IsVoidElement("br")) // false
 
 // This will fail because <br> expects a closing tag
 parser := markit.NewParserWithConfig("<br>", config)
-_, err := parser.Parse() // Error: expected closing tag
+_, err := parser.Parse() 
+if err != nil {
+    fmt.Printf("Error: %v\n", err) // Expected error: missing closing tag
+}
 ```
 
 ### HTML Configuration
@@ -118,7 +124,8 @@ content := `<article>
 parser := markit.NewParserWithConfig(content, config)
 ast, err := parser.Parse()
 if err != nil {
-    panic(err)
+    fmt.Printf("Parse error: %v\n", err)
+    return
 }
 ```
 
@@ -128,10 +135,12 @@ if err != nil {
 // Start with default configuration
 config := markit.DefaultConfig()
 
-// Add custom void elements
-config.SetVoidElements([]string{"my-icon", "my-separator", "custom-widget"})
+// Add custom void elements - create a new configuration per modification
+// to avoid thread safety issues
+config = config.WithVoidElements([]string{"my-icon", "my-separator", "custom-widget"})
 
-// Or add individually
+// Or add individually 
+// (note: in a future version this will return a new config for thread safety)
 config.AddVoidElement("special-tag")
 
 // Check if element is void
@@ -140,21 +149,27 @@ if config.IsVoidElement("my-icon") {
 }
 
 // Remove void element
+// (note: in a future version this will return a new config for thread safety)
 config.RemoveVoidElement("special-tag")
 ```
 
-### Dynamic Management
+### Thread-Safe Configuration
 
 ```go
-config := markit.HTMLConfig()
+// Note: Future versions will implement these thread-safe methods
+// This is just an example of the planned API
 
-// Runtime modification
-config.AddVoidElement("custom-void")
-config.RemoveVoidElement("wbr") // Remove standard void element
+// Start with HTML configuration
+baseConfig := markit.HTMLConfig()
 
-// Bulk operations
-customElements := []string{"icon", "spacer", "divider"}
-config.SetVoidElements(customElements) // Replaces all existing
+// Create a derived configuration with additional elements
+// (this returns a new config rather than modifying the existing one)
+config1 := baseConfig.WithVoidElement("custom-tag")
+config2 := baseConfig.WithVoidElements([]string{"icon", "spacer"})
+
+// Each parser uses its own immutable configuration
+parser1 := markit.NewParserWithConfig(content1, config1)
+parser2 := markit.NewParserWithConfig(content2, config2)
 ```
 
 ## Code Examples
@@ -194,11 +209,12 @@ func parseHTML5() {
     parser := markit.NewParserWithConfig(html, config)
     ast, err := parser.Parse()
     if err != nil {
-        panic(err)
+        fmt.Printf("Parse error: %v\n", err)
+        return
     }
     
     // All void elements are correctly parsed as self-closing
-    markit.Walk(ast, &markit.PrintVisitor{})
+    fmt.Println("Parsing successful")
 }
 ```
 

@@ -526,73 +526,100 @@ func DocumentConfig() *markit.ParserConfig {
 }
 ```
 
+### Thread Safety Considerations
+
+Configuration objects in MarkIt are not inherently thread-safe. When using MarkIt in concurrent environments, follow these guidelines:
+
+```go
+// AVOID: Sharing and modifying the same config in multiple goroutines
+sharedConfig := markit.HTMLConfig()
+
+go func() {
+    // Unsafe - may cause race conditions
+    sharedConfig.VoidElements["custom-tag"] = true
+    parser1 := markit.NewParserWithConfig(content1, sharedConfig)
+    // Use parser1...
+}()
+
+go func() {
+    // Unsafe - concurrent modification
+    sharedConfig.CaseSensitive = true
+    parser2 := markit.NewParserWithConfig(content2, sharedConfig)
+    // Use parser2...
+}()
+```
+
+```go
+// RECOMMENDED: Create separate configs for each goroutine
+baseConfig := markit.HTMLConfig()
+
+go func() {
+    // Create a copy for this goroutine
+    config1 := *baseConfig // Create a copy
+    config1.VoidElements["custom-tag"] = true
+    parser1 := markit.NewParserWithConfig(content1, &config1)
+    // Use parser1...
+}()
+
+go func() {
+    // Create a copy for this goroutine
+    config2 := *baseConfig // Create a copy
+    config2.CaseSensitive = true
+    parser2 := markit.NewParserWithConfig(content2, &config2)
+    // Use parser2...
+}()
+```
+
+### Configuration Immutability
+
+While the current API allows modifying configuration objects, it's best to treat them as immutable:
+
+```go
+// AVOID: Modifying configuration after parser creation
+config := markit.HTMLConfig()
+parser := markit.NewParserWithConfig(content, config)
+
+// Don't do this - may lead to unexpected behavior
+config.CaseSensitive = true
+ast, _ := parser.Parse() // Parsing behavior depends on when the config is read
+```
+
+```go
+// RECOMMENDED: Create a new configuration for each distinct use case
+htmlConfig := markit.HTMLConfig()
+parser1 := markit.NewParserWithConfig(content1, htmlConfig)
+
+// For different settings, create a new config
+customConfig := markit.HTMLConfig()
+customConfig.CaseSensitive = true
+customConfig.SkipComments = true
+parser2 := markit.NewParserWithConfig(content2, customConfig)
+```
+
+### Future Immutable API
+
+In upcoming releases, MarkIt will adopt an immutable configuration pattern:
+
+```go
+// Future API (planned for next release)
+baseConfig := markit.HTMLConfig()
+
+// Each method returns a new instance with the modified setting
+htmlConfig := baseConfig.
+    WithCaseSensitive(false).
+    WithVoidElement("custom-element").
+    WithSkipComments(true)
+
+// Original config remains unchanged
+// baseConfig != htmlConfig
+```
+
+### Performance Optimization
+
+// ... existing code ...
+
 ## Configuration Examples
 
 ### Complete HTML5 Setup
 
-```go
-func setupHTML5Parser(content string) (*markit.Document, error) {
-    config := markit.HTMLConfig()
-    
-    // Optional customizations
-    config.SkipComments = false  // Keep comments for debugging
-    
-    // Add custom void elements for web components
-    config.AddVoidElement("my-icon")
-    config.AddVoidElement("my-spacer")
-    
-    parser := markit.NewParserWithConfig(content, config)
-    return parser.Parse()
-}
 ```
-
-### Strict XML Parser
-
-```go
-func setupXMLParser(content string) (*markit.Document, error) {
-    config := markit.DefaultConfig()
-    
-    // Strict XML settings
-    config.CaseSensitive = true
-    config.AllowSelfCloseTags = true
-    config.SkipComments = false
-    
-    // No void elements in strict XML
-    config.VoidElements = make(map[string]bool)
-    
-    parser := markit.NewParserWithConfig(content, config)
-    return parser.Parse()
-}
-```
-
-### Performance-Optimized Parser
-
-```go
-func setupFastParser(content string) (*markit.Document, error) {
-    config := markit.DefaultConfig()
-    
-    // Optimize for speed
-    config.CaseSensitive = true  // Faster comparisons
-    config.SkipComments = true   // Skip comment processing
-    
-    parser := markit.NewParserWithConfig(content, config)
-    return parser.Parse()
-}
-```
-
----
-
-## Next Steps
-
-- [🧩 Void Elements](void-elements) - Learn about HTML5 void elements
-- [🌳 AST Traversal](ast-traversal) - Master AST walking and transformation
-- [🔧 Custom Protocols](custom-protocols) - Create custom markup languages
-- [💡 Examples](examples) - See real-world configuration examples
-
----
-
-<div align="center">
-
-**[🏠 Back to Home](/)** • **[📋 Report Issues](https://github.com/khicago/markit/issues)** • **[💬 Discussions](https://github.com/khicago/markit/discussions)**
-
-</div> 

@@ -1,16 +1,16 @@
 ---
 layout: default
 title: "FAQ - Frequently Asked Questions"
-description: "Find answers to common questions about MarkIt parser - usage, configuration, performance, and troubleshooting."
-keywords: "markit faq, parser questions, troubleshooting, go xml html parser, LLM, AI"
+description: "Answers to common questions about MarkIt parser - usage, configuration, performance, and troubleshooting."
+keywords: "markit faq, parser questions, troubleshooting, go xml html parser"
 author: "Khicago Team"
 ---
 
 # Frequently Asked Questions
 
-> **Quick answers to common questions about MarkIt**
+Common questions about using MarkIt and how to get the most out of it.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [General Questions](#general-questions)
 - [Installation & Setup](#installation--setup)
@@ -23,7 +23,7 @@ author: "Khicago Team"
 
 ### What is MarkIt?
 
-MarkIt is a next-generation extensible markup parser for Go that supports both XML and HTML parsing with high performance and flexibility. It provides a unified API for parsing various markup formats with configurable options.
+MarkIt is an extensible markup parser for Go that supports both XML and HTML parsing with a unified approach. It provides configurable options for parsing different markup formats with a consistent API.
 
 ### How is MarkIt different from other Go XML/HTML parsers?
 
@@ -33,17 +33,17 @@ MarkIt is a next-generation extensible markup parser for Go that supports both X
 | **Void Elements** | ✅ Configurable | ❌ No support | ✅ Built-in |
 | **Case Sensitivity** | ✅ Configurable | ✅ Always | ❌ Always lowercase |
 | **Custom Processing** | ✅ Extensible | ❌ Limited | ❌ Limited |
-| **Performance** | ✅ Optimized | ✅ Good | ✅ Good |
-| **Memory Usage** | ✅ Efficient | ✅ Good | ✅ Good |
+| **Performance** | ✅ Comparable | ✅ Good | ✅ Good |
+| **Memory Usage** | ✅ Good | ✅ Good | ✅ Good |
 
 ### Is MarkIt production-ready?
 
-Yes! MarkIt is designed for production use with:
-- **99.5%+ test coverage**
+MarkIt is designed for production use with:
+- **91.3% test coverage**
 - **Comprehensive error handling**
-- **Memory-efficient design**
-- **Extensive documentation**
-- **Active maintenance**
+- **Well-structured code**
+- **Detailed documentation**
+- **Active development**
 
 ### What Go versions are supported?
 
@@ -51,7 +51,7 @@ MarkIt requires **Go 1.19 or later**. We test against:
 - Go 1.19
 - Go 1.20
 - Go 1.21
-- Go 1.22 (latest)
+- Go 1.22
 
 ## Installation & Setup
 
@@ -63,7 +63,7 @@ go get github.com/khicago/markit
 
 ### Do I need any additional dependencies?
 
-No! MarkIt has **zero external dependencies** and only uses Go's standard library.
+No, MarkIt has no external dependencies and only uses Go's standard library.
 
 ### How do I import MarkIt in my code?
 
@@ -73,7 +73,7 @@ import "github.com/khicago/markit"
 
 ### Can I use MarkIt with Go modules?
 
-Yes! MarkIt fully supports Go modules:
+Yes, MarkIt fully supports Go modules:
 
 ```go
 // go.mod
@@ -171,9 +171,9 @@ doc.Walk(func(node markit.Node) bool {
 
 ## Performance
 
-### How fast is MarkIt compared to other parsers?
+### How does MarkIt's performance compare to other parsers?
 
-Benchmark results (parsing 1MB HTML document):
+Our initial benchmarks show competitive performance when parsing HTML and XML documents:
 
 ```
 BenchmarkMarkIt-8           1000    1.2ms/op    512KB/op
@@ -181,18 +181,20 @@ BenchmarkStdXML-8            800    1.5ms/op    768KB/op
 BenchmarkNetHTML-8           900    1.3ms/op    640KB/op
 ```
 
+Note: Your actual performance may vary depending on document complexity and specific use cases. We're continually working on performance improvements.
+
 ### How can I optimize parsing performance?
 
-1. **Reuse configurations**:
+1. Reuse configurations when parsing multiple documents:
 ```go
-// ✅ Good - reuse config
+// Better performance - reuse config
 config := markit.HTMLConfig()
 for _, content := range documents {
     parser := markit.NewParserWithConfig(content, config)
     // parse...
 }
 
-// ❌ Bad - create new config each time
+// Less efficient - creating new config each time
 for _, content := range documents {
     config := markit.HTMLConfig()
     parser := markit.NewParserWithConfig(content, config)
@@ -200,7 +202,7 @@ for _, content := range documents {
 }
 ```
 
-2. **Use appropriate configuration**:
+2. Use appropriate configuration:
 ```go
 // For XML - use strict config
 config := markit.DefaultConfig()
@@ -209,7 +211,7 @@ config := markit.DefaultConfig()
 config := markit.HTMLConfig()
 ```
 
-3. **Skip unnecessary features**:
+3. Skip unnecessary features:
 ```go
 config := markit.DefaultConfig()
 config.SkipComments = true // Skip comments if not needed
@@ -217,18 +219,18 @@ config.SkipComments = true // Skip comments if not needed
 
 ### What's the memory usage like?
 
-MarkIt is designed to be memory-efficient:
-- **Streaming parser** - doesn't load entire document into memory
-- **Efficient AST** - minimal memory overhead per node
-- **No memory leaks** - proper cleanup of resources
+MarkIt is designed with memory usage in mind:
+- Token-based parsing approach
+- Careful memory allocation
+- Cleanup of temporary resources
 
 ### Can I parse large documents?
 
-Yes! MarkIt handles large documents efficiently:
+Yes, though for very large documents you may want to consider a chunked approach:
 
 ```go
-// For very large documents, consider streaming
-func parseStreamingHTML(reader io.Reader) error {
+// For large documents, consider processing in chunks
+func parseChunkedHTML(reader io.Reader) error {
     scanner := bufio.NewScanner(reader)
     config := markit.HTMLConfig()
     
@@ -239,6 +241,34 @@ func parseStreamingHTML(reader io.Reader) error {
     }
     return scanner.Err()
 }
+```
+
+### Are configuration objects thread-safe?
+
+The current version of MarkIt doesn't guarantee thread safety for configuration objects. When using MarkIt in concurrent environments:
+
+1. Create separate configuration objects for each goroutine
+2. Avoid modifying configuration objects after they're created
+3. If you need to modify a configuration, create a new instance instead
+
+In future versions, configuration objects will be immutable with methods that return new instances:
+
+```go
+// Future API (planned for next release)
+baseConfig := markit.HTMLConfig()
+config1 := baseConfig.WithVoidElement("custom-tag")  // Returns new instance
+config2 := baseConfig.WithCaseSensitive(false)       // Returns new instance
+
+// Each parser gets its own config
+go func() {
+    parser1 := markit.NewParserWithConfig(content1, config1)
+    // Use parser1...
+}()
+
+go func() {
+    parser2 := markit.NewParserWithConfig(content2, config2)
+    // Use parser2...
+}()
 ```
 
 ## Troubleshooting
@@ -254,7 +284,7 @@ config := markit.HTMLConfig()
 // For XML content, use DefaultConfig
 config := markit.DefaultConfig()
 
-// Enable debug logging
+// Enable debug logging if available
 config.Debug = true
 ```
 
@@ -263,10 +293,10 @@ config.Debug = true
 Make sure you're using the right configuration:
 
 ```go
-// ✅ For HTML with void elements
+// For HTML with void elements
 config := markit.HTMLConfig()
 
-// ✅ Or add custom void elements
+// Or add custom void elements
 config := markit.DefaultConfig()
 config.AddVoidElement("br")
 config.AddVoidElement("img")
@@ -287,28 +317,28 @@ config.CaseSensitive = true
 
 ### Memory usage is too high
 
-1. **Skip unnecessary features**:
+1. Skip unnecessary features:
 ```go
 config.SkipComments = true
 ```
 
-2. **Process in chunks** for large documents
-3. **Reuse configurations** instead of creating new ones
+2. Process in chunks for large documents
+3. Reuse configurations instead of creating new ones
 
 ### Parsing is too slow
 
-1. **Use appropriate configuration**:
+1. Use appropriate configuration:
 ```go
 // Don't use HTMLConfig for XML
 config := markit.DefaultConfig() // for XML
 ```
 
-2. **Disable unnecessary processing**:
+2. Disable unnecessary processing:
 ```go
 config.AttributeProcessor = nil // if not needed
 ```
 
-3. **Profile your code**:
+3. Profile your code:
 ```bash
 go test -cpuprofile=cpu.prof -bench=.
 go tool pprof cpu.prof
@@ -316,22 +346,22 @@ go tool pprof cpu.prof
 
 ### How do I debug parsing issues?
 
-1. **Enable debug mode** (if available):
+1. Enable debug mode (if available):
 ```go
 config.Debug = true
 ```
 
-2. **Check the input**:
+2. Check the input:
 ```go
 fmt.Printf("Input: %q\n", content)
 ```
 
-3. **Validate the configuration**:
+3. Validate the configuration:
 ```go
 fmt.Printf("Config: %+v\n", config)
 ```
 
-4. **Use smaller test cases**:
+4. Use smaller test cases:
 ```go
 // Test with minimal input first
 testInput := "<div>test</div>"
@@ -365,7 +395,7 @@ doc.Walk(func(node markit.Node) bool {
 
 MarkIt focuses on parsing, not validation. For validation, consider:
 
-1. **Post-processing validation**:
+1. Post-processing validation:
 ```go
 doc, err := parser.Parse()
 if err != nil {
@@ -376,7 +406,7 @@ if err != nil {
 err = validateDocument(doc)
 ```
 
-2. **Using external validators** like XML Schema or HTML validators
+2. Using external validators like XML Schema or HTML validators
 
 ### How do I convert between XML and HTML?
 
@@ -395,7 +425,7 @@ htmlOutput := doc.ToHTML()
 
 ### Can I modify the AST after parsing?
 
-Yes! The AST is mutable:
+Yes, the AST is mutable:
 
 ```go
 doc, _ := parser.Parse()
@@ -435,15 +465,11 @@ parser := markit.NewParser(utf8Content)
 
 If you can't find the answer here:
 
-1. **Check the [documentation](/)**
-2. **Search [GitHub Issues](https://github.com/khicago/markit/issues)**
-3. **Ask in [GitHub Discussions](https://github.com/khicago/markit/discussions)**
-4. **Read the [API Reference](/api-reference)**
+1. Check the [documentation](/)
+2. Search [GitHub Issues](https://github.com/khicago/markit/issues)
+3. Ask in [GitHub Discussions](https://github.com/khicago/markit/discussions)
+4. Read the [API Reference](/api-reference)
 
 ---
 
-<div align="center">
-
-**[🏠 Back to Home](/)** • **[📚 Documentation](/docs)** • **[🤝 Contributing](/contributing)**
-
-</div> 
+[Back to Home](/) • [Documentation](/docs) • [Contributing](/contributing) 

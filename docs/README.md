@@ -1,4 +1,50 @@
+---
+layout: default
+title: "MarkIt Documentation"
+description: "Documentation for MarkIt - the extensible markup parser and renderer for Go"
+keywords: "markit documentation, xml parser, html parser, go parser"
+author: "Khicago Team"
+---
+
 # MarkIt Documentation
+
+Welcome to the MarkIt documentation. This guide will help you get started with MarkIt and explore its features.
+
+## Project Status
+
+- [Milestone 1 Release Notes](milestone1_release_note) - Summary of current implemented features
+- [Milestone 2 Development Plan](milestone2_plan) - Roadmap of planned features and enhancements
+
+## Getting Started
+
+- [Installation and Basic Usage](getting-started) - How to install and use MarkIt
+- [Configuration](configuration) - Configure MarkIt for different use cases
+- [Void Elements](void-elements) - Working with self-closing tags
+
+## API Reference
+
+- [Parser API](api-reference#parser) - Core parsing functionality
+- [Renderer API](renderer) - Rendering and output formatting
+- [AST Nodes](api-reference#ast) - Working with the abstract syntax tree
+
+## Examples
+
+- [Basic Examples](examples#basic) - Simple parsing and rendering examples
+- [Advanced Usage](examples#advanced) - More complex use cases and techniques
+
+## Contributing
+
+- [Contributing Guide](contributing) - How to contribute to MarkIt
+- [Development Setup](contributing#development) - Setting up your development environment
+
+## FAQ and Support
+
+- [Frequently Asked Questions](faq) - Common questions and answers
+- [Troubleshooting](faq#troubleshooting) - Solutions to common issues
+
+## Changelog
+
+- [Version History](CHANGELOG) - Release notes and version changes
 
 This directory contains the complete documentation for MarkIt parser, built with Jekyll for GitHub Pages.
 

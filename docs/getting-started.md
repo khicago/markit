@@ -2,17 +2,15 @@
 layout: default
 title: "Getting Started - MarkIt Parser"
 description: "Quick start guide for MarkIt - installation, basic usage, configuration, and your first parsing examples."
-keywords: "markit getting started, go xml parser, html parser, installation guide, llm, ai"
+keywords: "markit getting started, go xml parser, html parser, installation guide"
 author: "Khicago Team"
 ---
 
 # Getting Started
 
-> **Your journey to powerful markup parsing starts here**
-
 This guide will get you up and running with MarkIt in minutes. From installation to your first parsed document, we'll cover everything you need to know.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -20,6 +18,7 @@ This guide will get you up and running with MarkIt in minutes. From installation
 - [Configuration Basics](#configuration-basics)
 - [Common Use Cases](#common-use-cases)
 - [Error Handling](#error-handling)
+- [Performance Considerations](#performance-considerations)
 - [Next Steps](#next-steps)
 
 ## Prerequisites
@@ -489,13 +488,17 @@ func (bv *BookValidator) VisitText(text *markit.Text) error { return nil }
 func (bv *BookValidator) VisitComment(comment *markit.Comment) error { return nil }
 ```
 
-## Performance Tips
+## Performance Considerations
+
+MarkIt is designed with performance in mind, though your specific use case will determine the actual performance characteristics. Here are some tips to get the best performance:
 
 ### Reuse Configurations
 
+Creating configuration objects has some overhead. When parsing multiple documents, reuse configurations:
+
 ```go
-// ❌ Don't create new configs repeatedly
-func badParsing(documents []string) {
+// Inefficient approach: Creating new config for each document
+func inefficientParsing(documents []string) {
     for _, doc := range documents {
         config := markit.HTMLConfig() // Wasteful
         parser := markit.NewParserWithConfig(doc, config)
@@ -503,10 +506,10 @@ func badParsing(documents []string) {
     }
 }
 
-// ✅ Reuse configuration
+// Better approach: Reuse configuration
 var sharedConfig = markit.HTMLConfig()
 
-func goodParsing(documents []string) {
+func efficientParsing(documents []string) {
     for _, doc := range documents {
         parser := markit.NewParserWithConfig(doc, sharedConfig)
         // ...
@@ -514,40 +517,40 @@ func goodParsing(documents []string) {
 }
 ```
 
-### Skip Unnecessary Features
+### Select Appropriate Configuration
 
 ```go
-// For performance-critical parsing
+// For performance optimization in some cases
 config := markit.DefaultConfig()
-config.SkipComments = true  // Skip comment nodes
+config.SkipComments = true  // Skip comment nodes if not needed
 
-// For HTML without case sensitivity needs
-config.CaseSensitive = true  // Faster string comparisons
+// Consider case sensitivity needs carefully
+config.CaseSensitive = true  // Can be faster for string comparisons
 ```
 
 ## Next Steps
 
 Now that you've learned the basics, explore these advanced topics:
 
-### 🧩 **Void Elements**
+### Void Elements
 Learn about HTML5 void elements like `<br>`, `<img>`, and custom void elements.
-**[Read the Void Elements Guide →](void-elements)**
+[Read the Void Elements Guide →](void-elements)
 
-### ⚙️ **Configuration**  
+### Configuration  
 Deep dive into all configuration options and customization possibilities.
-**[Explore Configuration →](configuration)**
+[Explore Configuration →](configuration)
 
-### 🌳 **AST Traversal**
-Master the visitor pattern and AST transformation techniques.
-**[Learn AST Traversal →](ast-traversal)**
+### AST Traversal
+Learn about the visitor pattern and AST transformation techniques.
+[Learn AST Traversal →](ast-traversal)
 
-### 🔧 **Custom Protocols**
-Create your own markup languages with custom tag bracket protocols.
-**[Build Custom Protocols →](custom-protocols)**
+### Custom Protocols
+Work with custom tag protocols for different markup formats.
+[Learn About Custom Protocols →](custom-protocols)
 
-### 💡 **Examples**
-See real-world examples and advanced usage patterns.
-**[Browse Examples →](examples)**
+### Examples
+See practical examples and usage patterns.
+[Browse Examples →](examples)
 
 ## Common Questions
 
@@ -557,11 +560,11 @@ A: MarkIt is designed for well-formed markup. For HTML with missing tags, consid
 
 ### Q: How does MarkIt compare to encoding/xml?
 
-A: MarkIt is more flexible and extensible, supporting custom protocols and advanced configuration. Use encoding/xml for simple XML needs, MarkIt for complex or custom markup.
+A: MarkIt offers additional flexibility with configurable options and unified handling of different markup formats. Standard library packages may be more suitable for simpler use cases.
 
 ### Q: Can I parse multiple documents concurrently?
 
-A: Yes! MarkIt is thread-safe. You can parse different documents in parallel using separate parser instances.
+A: Yes, MarkIt is thread-safe. You can parse different documents in parallel using separate parser instances.
 
 ```go
 func concurrentParsing(documents []string) {
@@ -573,7 +576,11 @@ func concurrentParsing(documents []string) {
         go func(content string) {
             defer wg.Done()
             parser := markit.NewParser(content)
-            ast, _ := parser.Parse()
+            ast, err := parser.Parse()
+            if err != nil {
+                // Handle error
+                return
+            }
             results <- ast
         }(doc)
     }
@@ -587,14 +594,10 @@ func concurrentParsing(documents []string) {
 
 ## Get Help
 
-- **📋 Issues**: [Report problems](https://github.com/khicago/markit/issues)
-- **💬 Discussions**: [Ask questions](https://github.com/khicago/markit/discussions)  
-- **📚 API Docs**: [Complete reference](https://pkg.go.dev/github.com/khicago/markit)
+- Issues: [Report problems](https://github.com/khicago/markit/issues)
+- Discussions: [Ask questions](https://github.com/khicago/markit/discussions)  
+- API Docs: [Complete reference](https://pkg.go.dev/github.com/khicago/markit)
 
 ---
 
-<div align="center">
-
-**[🏠 Back to Home](/)** • **[🧩 Void Elements →](void-elements)** • **[⚙️ Configuration →](configuration)**
-
-</div> 
+[Back to Home](/) • [Void Elements →](void-elements) • [Configuration →](configuration) 
